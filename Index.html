@@ -1,0 +1,1989 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Slaberan & Follow-Up Pasien Neurologi</title>
+  <style>
+    :root {
+      --primary: #0f2b48;
+      --primary-accent: #0284c7;
+      --accent-glow: #38bdf8;
+      --bg-dark: #0a192f;
+      --card-bg: rgba(255, 255, 255, 0.98);
+      --border: #cbd5e1;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 15% 15%, rgba(2, 132, 199, 0.18) 0px, transparent 45%),
+        radial-gradient(at 85% 85%, rgba(14, 165, 233, 0.12) 0px, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.6) 0%, rgba(10, 25, 47, 1) 100%);
+      background-attachment: fixed;
+      margin: 0;
+      padding: 14px;
+      color: var(--text-main);
+    }
+
+    .container { max-width: 980px; margin: auto; }
+
+    .neuro-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0369a1 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.3);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .neuro-header::after {
+      content: "🧠";
+      position: absolute;
+      right: 15px;
+      bottom: -15px;
+      font-size: 110px;
+      opacity: 0.12;
+      pointer-events: none;
+    }
+    .neuro-header h1 {
+      font-size: 20px;
+      margin: 0 0 6px 0;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .neuro-header p {
+      margin: 0 0 10px 0;
+      font-size: 13px;
+      color: #bae6fd;
+      line-height: 1.5;
+      max-width: 85%;
+    }
+    .neuro-creator {
+      display: inline-block;
+      font-size: 11.5px;
+      color: #e0f2fe;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.05);
+    }
+
+    h3 { margin-top: 0; color: var(--primary); font-size: 17px; }
+    
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary-accent);
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 5px;
+      margin: 18px 0 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    @media (max-width: 768px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+    
+    .label-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .label-wrapper label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .label-actions { display: flex; align-items: center; gap: 6px; }
+
+    .history-select {
+      font-size: 11px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #0369a1;
+      cursor: pointer;
+      max-width: 140px;
+    }
+
+    .info-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .info-btn:hover {
+      background: var(--primary-accent);
+      color: #ffffff;
+      transform: scale(1.1);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 8px;
+      font-family: inherit;
+      color: #0f172a;
+      background-color: #fff;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-accent);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+    textarea { resize: vertical; line-height: 1.4; }
+
+    ::placeholder {
+      color: #94a3b8;
+      opacity: 0.85;
+      font-style: italic;
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 9px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+    button:hover { background: #1e3a8a; }
+    button.alt { background: #059669; }
+    button.alt:hover { background: #047857; }
+    button.backup-btn { background: #0284c7; }
+    button.backup-btn:hover { background: #0369a1; }
+    button.restore-btn { background: #7c3aed; }
+    button.restore-btn:hover { background: #6d28d9; }
+    button.pdf-btn { background: #475569; }
+    button.pdf-btn:hover { background: #334155; }
+    button.danger { background: #dc2626; }
+    button.danger:hover { background: #b91c1c; }
+
+    .btn-group { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+    .output-area {
+      background: #f8fafc;
+      font-family: Menlo, Monaco, Consolas, monospace;
+      white-space: pre-wrap;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 14px;
+      border: 1px dashed #94a3b8;
+      border-radius: 6px;
+      color: #0f172a;
+    }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+    th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+    th { background: #f1f5f9; color: #475569; }
+
+    .badge { display: inline-block; padding: 2px 7px; font-size: 11px; border-radius: 4px; font-weight: 600; }
+    .badge-baru { background: #dbeafe; color: #1e40af; }
+    .badge-lama { background: #fef3c7; color: #92400e; }
+
+    .filter-box {
+      background: #e0f2fe;
+      border: 1px solid #bae6fd;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+    .filter-box select {
+      margin-bottom: 0;
+      background: #fff;
+      max-width: 250px;
+      font-weight: 600;
+    }
+
+    /* Modal Dialog Panduan */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(2px);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    .modal-content {
+      background: #ffffff;
+      width: 100%;
+      max-width: 580px;
+      max-height: 85vh;
+      border-radius: 10px;
+      overflow-y: auto;
+      padding: 20px;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+    .modal-header h4 { margin: 0; font-size: 16px; color: var(--primary); }
+    .modal-close { background: none; border: none; font-size: 22px; color: #64748b; cursor: pointer; padding: 0; }
+    .modal-body { font-size: 13px; line-height: 1.6; color: #334155; }
+    .modal-section { margin-bottom: 12px; background: #f8fafc; padding: 10px 12px; border-radius: 6px; border-left: 3px solid var(--primary-accent); }
+
+    /* Area Cetak Print PDF */
+    #printResumeArea { display: none; }
+    @media print {
+      body * { visibility: hidden; }
+      #printResumeArea, #printResumeArea * { visibility: visible; }
+      #printResumeArea {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #fff;
+        color: #000;
+        padding: 20px;
+        box-sizing: border-box;
+        font-size: 11pt;
+        line-height: 1.4;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header Khusus Neurologi -->
+  <div class="neuro-header">
+    <h1>⚡ SISTEM SLABERAN & FOLLOW-UP NEUROLOGI</h1>
+    <p>Aplikasi pencatatan klinis harian MPPD/Koas Departemen Neurologi. Dilengkapi kalkulator klinis, penanggalan harian, memori kata, filter DPJP/Kamar, backup-restore database mandiri, serta integrasi rekomendasi PPK Neurologi pada cetak resume PDF.</p>
+    <div class="neuro-creator">
+      Dibuat oleh: <b>@IsmailAsmi_</b> — Fakultas Kedokteran Universitas Muslim Indonesia
+    </div>
+  </div>
+
+  <!-- Identitas Koas & Tanggal Jaga -->
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+      <h3 style="margin:0;">Data Jaga & Identitas Koas</h3>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:11px; color:#64748b; font-weight:600;">Ganti Profil Koas:</span>
+        <select id="pilihProfilKoas" class="history-select" style="max-width:160px;" onchange="gantiProfilKoas(this.value)">
+          <option value="">Profil Tersimpan...</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-3">
+      <div>
+        <div class="label-wrapper"><label for="koasNama">Nama Koas</label></div>
+        <input type="text" id="koasNama" list="list_koasNama" placeholder="Nama lengkap koas" oninput="simpanOtomatisKoas()">
+        <datalist id="list_koasNama"></datalist>
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="koasNim">NIM / Stambuk</label></div>
+        <input type="text" id="koasNim" list="list_koasNim" placeholder="Nomor stambuk" oninput="simpanOtomatisKoas()">
+        <datalist id="list_koasNim"></datalist>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="tglLaporan">Hari & Tanggal Laporan</label>
+          <span style="font-size:10px; color:#0284c7; cursor:pointer; font-weight:600;" onclick="setTanggalOtomatis(true)">↺ Set Hari Ini</span>
+        </div>
+        <input type="text" id="tglLaporan" placeholder="Otomatis mendeteksi hari ini...">
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulir Entri Pasien -->
+  <div class="card">
+    <h3>Input / Edit Pasien Rawat Inap</h3>
+
+    <!-- Bagian A: Data Diri -->
+    <div class="section-title">A. Data Diri Pasien</div>
+    <div class="grid-4">
+      <div>
+        <div class="label-wrapper"><label for="pStatus">Status Pasien</label></div>
+        <select id="pStatus" onchange="toggleStatusPasien()">
+          <option value="Baru">Pasien Baru</option>
+          <option value="Lama">Pasien Lama</option>
+        </select>
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="pTglMasuk">Tanggal Masuk RS</label></div>
+        <input type="date" id="pTglMasuk">
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="pGelar">Gelar</label></div>
+        <select id="pGelar">
+          <option value="">-- Tanpa Gelar (Kosong) --</option>
+          <option value="Tn.">Tn.</option>
+          <option value="Ny.">Ny.</option>
+          <option value="Nn.">Nn.</option>
+          <option value="An.">An.</option>
+          <option value="By.">By.</option>
+        </select>
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="pNama">Nama Pasien</label></div>
+        <input type="text" id="pNama" list="list_pNama" placeholder="Nama pasien">
+        <datalist id="list_pNama"></datalist>
+      </div>
+    </div>
+
+    <div class="grid-4">
+      <div>
+        <div class="label-wrapper"><label for="pUsia">Usia (Angka Saja)</label></div>
+        <input type="number" id="pUsia" placeholder="Contoh: 51">
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="pRM">No. Rekam Medis (RM)</label></div>
+        <input type="text" id="pRM" list="list_pRM" placeholder="Nomor RM">
+        <datalist id="list_pRM"></datalist>
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="pRuang">Ruangan / Lokasi</label></div>
+        <select id="pRuang">
+          <option value="Cemara (Lt 1)">Cemara (Lt 1)</option>
+          <option value="Edelwais (Lt 1)">Edelwais (Lt 1)</option>
+          <option value="Flamboyan (Lt 2)">Flamboyan (Lt 2)</option>
+          <option value="Edelwais (Lt 2)">Edelwais (Lt 2)</option>
+          <option value="Geranium (Lt 2)">Geranium (Lt 2)</option>
+          <option value="Anggrek (Lt 1)">Anggrek (Lt 1)</option>
+          <option value="Bougenville (Lt 1)">Bougenville (Lt 1)</option>
+          <option value="Dahlia (Lt 1)">Dahlia (Lt 1)</option>
+          <option value="Anggrek (Lt 2)">Anggrek (Lt 2)</option>
+          <option value="Cemara (Lt 2)">Cemara (Lt 2)</option>
+          <option value="Dahlia (Lt 2)">Dahlia (Lt 2)</option>
+          <option value="ICU">ICU</option>
+          <option value="CVCU/ICCU">CVCU/ICCU</option>
+          <option value="IGD">IGD</option>
+        </select>
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="pBed">Nomor Bed</label></div>
+        <input type="text" id="pBed" list="list_pBed" placeholder="Contoh: B.4 / Bed 09">
+        <datalist id="list_pBed"></datalist>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="label-wrapper"><label for="pDPJP">DPJP</label></div>
+        <select id="pDPJP" onchange="toggleCustomDPJP()">
+          <option value="dr. Mardiana, Sp.N">dr. Mardiana, Sp.N</option>
+          <option value="dr. Mardiana, Sp.N (konsul)">dr. Mardiana, Sp.N (konsul)</option>
+          <option value="dr. Deviyanty Syahmi S., Sp.N">dr. Deviyanty Syahmi S., Sp.N</option>
+          <option value="dr. Deviyanty Syahmi S., Sp.N (konsul)">dr. Deviyanty Syahmi S., Sp.N (konsul)</option>
+          <option value="Lainnya">Dokter Lainnya...</option>
+        </select>
+        <input type="text" id="pDPJPLainnya" list="list_pDPJPLainnya" placeholder="Tulis nama DPJP & gelar" style="display: none; margin-top: 4px;">
+        <datalist id="list_pDPJPLainnya"></datalist>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="pDiag">Diagnosis (Multipel via Enter)</label>
+          <select class="history-select" onchange="insertHistory('pDiag', this.value)"><option value="">↺ Histori...</option></select>
+        </div>
+        <textarea id="pDiag" rows="2" placeholder="Tuliskan diagnosis kerja / klinis"></textarea>
+      </div>
+    </div>
+
+    <!-- Bagian B: S/ -->
+    <div class="section-title">B. Subjective (S/)</div>
+    <div id="secKeluhanMasuk">
+      <div class="label-wrapper">
+        <label for="sKeluhanMasuk">Keluhan Masuk</label>
+        <select class="history-select" onchange="insertHistory('sKeluhanMasuk', this.value)"><option value="">↺ Histori...</option></select>
+      </div>
+      <textarea id="sKeluhanMasuk" rows="3" placeholder="Tuliskan keluhan utama saat awal masuk RS"></textarea>
+    </div>
+    <div id="secKeluhanPagi" style="display:none;">
+      <div class="label-wrapper">
+        <label for="sKeluhanPagi">Keluhan Pagi Ini</label>
+        <select class="history-select" onchange="insertHistory('sKeluhanPagi', this.value)"><option value="">↺ Histori...</option></select>
+      </div>
+      <textarea id="sKeluhanPagi" rows="3" placeholder="Tuliskan evaluasi keluhan pagi hari ini"></textarea>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="label-wrapper">
+          <label for="sRKS">Riwayat Keluhan Serupa</label>
+          <select class="history-select" onchange="insertHistory('sRKS', this.value)"><option value="">↺ Histori...</option></select>
+        </div>
+        <textarea id="sRKS" rows="2" placeholder="Tuliskan riwayat keluhan serupa / disangkal"></textarea>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="sRPD">Riwayat Penyakit Dahulu (RPD)</label>
+          <select class="history-select" onchange="insertHistory('sRPD', this.value)"><option value="">↺ Histori...</option></select>
+        </div>
+        <textarea id="sRPD" rows="2" placeholder="Tuliskan riwayat hipertensi, DM, stroke, dll"></textarea>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div>
+        <div class="label-wrapper">
+          <label for="sRPO">Riwayat Penggunaan Obat (RPO)</label>
+          <select class="history-select" onchange="insertHistory('sRPO', this.value)"><option value="">↺ Histori...</option></select>
+        </div>
+        <textarea id="sRPO" rows="3" placeholder="Tuliskan nama obat dan dosis rutin"></textarea>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="sAlergi">Riwayat Alergi</label>
+          <select class="history-select" onchange="insertHistory('sAlergi', this.value)"><option value="">↺ Histori...</option></select>
+        </div>
+        <textarea id="sAlergi" rows="3" placeholder="Alergi obat / makanan / disangkal"></textarea>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="sLainnya">Riwayat Lain-lain (Trauma / Bedah)</label>
+          <select class="history-select" onchange="insertHistory('sLainnya', this.value)"><option value="">↺ Histori...</option></select>
+        </div>
+        <textarea id="sLainnya" rows="3" placeholder="Riwayat bedah saraf, trauma capitis, dll"></textarea>
+      </div>
+    </div>
+
+    <!-- Bagian C: O/ -->
+    <div class="section-title">C. Objective (O/)</div>
+    
+    <div style="font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Tanda Vital (Cukup Angka Saja)</div>
+    <div class="grid-4">
+      <div>
+        <div class="label-wrapper">
+          <label for="oTDSistol">TD Sistol (mmHg)</label>
+          <span class="info-btn" onclick="showInfo('td', event)">ⓘ</span>
+        </div>
+        <input type="number" id="oTDSistol" placeholder="Contoh: 120">
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="oTDDiastol">TD Diastol (mmHg)</label>
+          <span class="info-btn" onclick="showInfo('td', event)">ⓘ</span>
+        </div>
+        <input type="number" id="oTDDiastol" placeholder="Contoh: 80">
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="oNadi">Nadi (x/menit)</label></div>
+        <input type="number" id="oNadi" placeholder="Contoh: 80">
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="oRR">RR (x/menit)</label></div>
+        <input type="number" id="oRR" placeholder="Contoh: 20">
+      </div>
+    </div>
+
+    <div class="grid-4">
+      <div>
+        <div class="label-wrapper"><label for="oSuhu">Suhu (°C)</label></div>
+        <input type="text" id="oSuhu" placeholder="Contoh: 36.5">
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="oSpO2">SpO2 (%)</label></div>
+        <input type="number" id="oSpO2" placeholder="Contoh: 98">
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="oO2Via">Oksigen via</label></div>
+        <input type="text" id="oO2Via" list="list_oO2Via" placeholder="Contoh: RA / NK 3 lpm / NRM">
+        <datalist id="list_oO2Via"></datalist>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="oNRS">NRS (0 - 10)</label>
+          <span class="info-btn" onclick="showInfo('nrs', event)">ⓘ</span>
+        </div>
+        <input type="number" id="oNRS" min="0" max="10" placeholder="Contoh: 0 - 10">
+      </div>
+    </div>
+
+    <div class="label-wrapper" style="margin-top:10px;">
+      <label>Status Kesadaran Neurologi</label>
+      <span class="info-btn" onclick="showInfo('gcs', event)">ⓘ</span>
+    </div>
+    <div class="grid-3">
+      <div>
+        <div class="label-wrapper"><label for="oGCSE">GCS: Eye (1-4)</label></div>
+        <select id="oGCSE">
+          <option value="4">4 - Spontan</option>
+          <option value="3">3 - Terhadap Suara</option>
+          <option value="2">2 - Terhadap Nyeri</option>
+          <option value="1">1 - Tidak Ada Respon</option>
+        </select>
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="oGCSM">GCS: Motorik (1-6)</label></div>
+        <select id="oGCSM">
+          <option value="6">6 - Mengikuti Perintah</option>
+          <option value="5">5 - Melokalisir Nyeri</option>
+          <option value="4">4 - Menghindar Nyeri</option>
+          <option value="3">3 - Fleksi Abnormal (Dekortikasi)</option>
+          <option value="2">2 - Ekstensi Abnormal (Deserebrasi)</option>
+          <option value="1">1 - Tidak Ada Respon</option>
+        </select>
+      </div>
+      <div>
+        <div class="label-wrapper"><label for="oGCSV">GCS: Verbal (1-5 / X)</label></div>
+        <select id="oGCSV">
+          <option value="5">5 - Orientasi Baik</option>
+          <option value="4">4 - Bingung</option>
+          <option value="3">3 - Kata Tidak Sesuai</option>
+          <option value="2">2 - Mengerang</option>
+          <option value="1">1 - Tidak Ada Respon</option>
+          <option value="X">X - Afasia / ETT</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="label-wrapper">
+          <label for="oFKL">Fungsi Kortikal Luhur (FKL)</label>
+          <span class="info-btn" onclick="showInfo('fkl', event)">ⓘ</span>
+        </div>
+        <input type="text" id="oFKL" list="list_oFKL" placeholder="Contoh: normal / afasia motorik">
+        <datalist id="list_oFKL"></datalist>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="oPupil">N. Cranialis (I - XII)</label>
+          <span class="info-btn" onclick="showInfo('ncranialis', event)">ⓘ</span>
+        </div>
+        <input type="text" id="oPupil" list="list_oPupil" placeholder="Contoh: Pupil isokor 3mm/3mm, RC (+/+), parese N.VII dextra UMN">
+        <datalist id="list_oPupil"></datalist>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div>
+        <div class="label-wrapper">
+          <label for="oRMKaku">RM: Kaku Kuduk</label>
+          <span class="info-btn" onclick="showInfo('kakukuduk', event)">ⓘ</span>
+        </div>
+        <select id="oRMKaku">
+          <option value="">-- Kosong / Tidak Diperiksa --</option>
+          <option value="(-)">(-)</option>
+          <option value="(+)"> (+)</option>
+        </select>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="oRMBrudzinski">RM: Brudzinski I & II</label>
+          <span class="info-btn" onclick="showInfo('brudzinski', event)">ⓘ</span>
+        </div>
+        <select id="oRMBrudzinski">
+          <option value="">-- Kosong / Tidak Diperiksa --</option>
+          <option value="(-/-)">(-/-)</option>
+          <option value="(+/+)"> (+/+)</option>
+          <option value="(+/-)"> (+/-)</option>
+          <option value="(-/+)"> (-/+)</option>
+        </select>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="oRMKernig">RM: Kernig Sign</label>
+          <span class="info-btn" onclick="showInfo('kernig', event)">ⓘ</span>
+        </div>
+        <select id="oRMKernig">
+          <option value="">-- Kosong / Tidak Diperiksa --</option>
+          <option value="(-/-)">(-/-)</option>
+          <option value="(+/+)"> (+/+)</option>
+          <option value="(+/-)"> (+/-)</option>
+          <option value="(-/+)"> (-/+)</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="font-size:12px; font-weight:600; color:#475569; margin:10px 0 6px;">Pemeriksaan Motorik</div>
+    <div class="grid-3">
+      <div>
+        <div class="label-wrapper">
+          <label for="oMotPergerakan">Pergerakan</label>
+          <div class="label-actions">
+            <select class="history-select" onchange="insertHistory('oMotPergerakan', this.value)"><option value="">↺ Histori...</option></select>
+            <span class="info-btn" onclick="showInfo('pergerakan', event)">ⓘ</span>
+          </div>
+        </div>
+        <textarea id="oMotPergerakan" rows="2" placeholder="Contoh: kesan normal pada sisi kiri&#10;menurun pada sisi kanan"></textarea>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="oMotTonus">Tonus</label>
+          <div class="label-actions">
+            <select class="history-select" onchange="insertHistory('oMotTonus', this.value)"><option value="">↺ Histori...</option></select>
+            <span class="info-btn" onclick="showInfo('tonus', event)">ⓘ</span>
+          </div>
+        </div>
+        <textarea id="oMotTonus" rows="2" placeholder="Contoh: normotonus / spastik / flaccid"></textarea>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="oSensorik">Sensorik</label>
+          <div class="label-actions">
+            <select class="history-select" onchange="insertHistory('oSensorik', this.value)"><option value="">↺ Histori...</option></select>
+            <span class="info-btn" onclick="showInfo('sensorik', event)">ⓘ</span>
+          </div>
+        </div>
+        <textarea id="oSensorik" rows="2" placeholder="Contoh: kesan normal / hipoestesi"></textarea>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="label-wrapper">
+          <label for="oKekuatanSup">Kekuatan Ekstremitas Superior (D / S)</label>
+          <span class="info-btn" onclick="showInfo('kekuatan', event)">ⓘ</span>
+        </div>
+        <input type="text" id="oKekuatanSup" list="list_oKekuatanSup" placeholder="Contoh: 5/5 D 5/5 S">
+        <datalist id="list_oKekuatanSup"></datalist>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="oKekuatanInf">Kekuatan Ekstremitas Inferior (D / S)</label>
+          <span class="info-btn" onclick="showInfo('kekuatan', event)">ⓘ</span>
+        </div>
+        <input type="text" id="oKekuatanInf" list="list_oKekuatanInf" placeholder="Contoh: 5/5 D 5/5 S">
+        <datalist id="list_oKekuatanInf"></datalist>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="label-wrapper">
+          <label for="oRefFisio">Refleks Fisiologis: BPR, TPR, KPR, APR</label>
+          <div class="label-actions">
+            <select class="history-select" onchange="insertHistory('oRefFisio', this.value)"><option value="">↺ Histori...</option></select>
+            <span class="info-btn" onclick="showInfo('reffisio', event)">ⓘ</span>
+          </div>
+        </div>
+        <textarea id="oRefFisio" rows="2" placeholder="Contoh: BPR +2/+2, TPR +2/+2&#10;KPR +2/+2, APR +2/+2"></textarea>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="oRefPato">Refleks Patologis: Hoffman, Babinski</label>
+          <div class="label-actions">
+            <select class="history-select" onchange="insertHistory('oRefPato', this.value)"><option value="">↺ Histori...</option></select>
+            <span class="info-btn" onclick="showInfo('refpato', event)">ⓘ</span>
+          </div>
+        </div>
+        <textarea id="oRefPato" rows="2" placeholder="Contoh: Hoffman Tromner (-/-)&#10;Babinski (-/-)"></textarea>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="label-wrapper">
+          <label for="oOtonom">Otonom: BAB & BAK</label>
+          <div class="label-actions">
+            <select class="history-select" onchange="insertHistory('oOtonom', this.value)"><option value="">↺ Histori...</option></select>
+            <span class="info-btn" onclick="showInfo('otonom', event)">ⓘ</span>
+          </div>
+        </div>
+        <textarea id="oOtonom" rows="2" placeholder="Contoh: BAB normal&#10;BAK via dower catheter"></textarea>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="oLainLain">Lain-lain: Tes Provokasi Saraf</label>
+          <div class="label-actions">
+            <select class="history-select" onchange="insertHistory('oLainLain', this.value)"><option value="">↺ Histori...</option></select>
+            <span class="info-btn" onclick="showInfo('provokasi', event)">ⓘ</span>
+          </div>
+        </div>
+        <textarea id="oLainLain" rows="2" placeholder="Contoh: Laseque (-/-)&#10;Patrick (-/-), Kontra-Patrick (-/-)"></textarea>
+      </div>
+    </div>
+
+    <!-- Bagian D: P/ dan I/ -->
+    <div class="section-title">D. Planning (P/) & Instruksi (I/)</div>
+    <div class="grid-2">
+      <div>
+        <div class="label-wrapper">
+          <label for="pPlan">P/ (Planning Diagnostik / Evaluasi / Ro / Lab)</label>
+          <select class="history-select" onchange="insertHistory('pPlan', this.value)"><option value="">↺ Histori...</option></select>
+        </div>
+        <textarea id="pPlan" rows="3" placeholder="Contoh: CT Scan Kepala polos&#10;Konsul Fisioterapi"></textarea>
+      </div>
+      <div>
+        <div class="label-wrapper">
+          <label for="pInstruksi">I/ (Instruksi Terapi / Obat / Perawatan)</label>
+          <select class="history-select" onchange="insertHistory('pInstruksi', this.value)"><option value="">↺ Histori...</option></select>
+        </div>
+        <textarea id="pInstruksi" rows="3" placeholder="Contoh: IVFD RL 20 tpm&#10;Inj. Citicoline 500mg/12j"></textarea>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button onclick="simpanPasien()">Simpan / Update Pasien</button>
+      <button type="button" class="alt" onclick="clearForm()">Reset Formulir</button>
+    </div>
+  </div>
+
+  <!-- Tabel Pasien Aktif dengan Filter Ruangan, DPJP, & Manajemen Backup Data -->
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; flex-wrap:wrap; gap:10px;">
+      <h3 style="margin:0;">Daftar Pasien Aktif (<span id="totalBadge">0</span>)</h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <select id="filterTabelRuang" class="history-select" style="max-width:180px;" onchange="renderTable()">
+          <option value="SEMUA">Semua Kamar/Ruang</option>
+        </select>
+        <select id="filterTabelDPJP" class="history-select" style="max-width:180px;" onchange="renderTable()">
+          <option value="SEMUA">Semua DPJP</option>
+        </select>
+      </div>
+    </div>
+    
+    <div style="overflow-x:auto;">
+      <table id="tabelPasien">
+        <thead>
+          <tr>
+            <th>Ruang / Bed</th>
+            <th>Status / Rawat</th>
+            <th>Nama / Usia / RM</th>
+            <th>DPJP</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Tombol Pencadangan Data & Pemulihan (Bebas Pindah Perangkat / Hosting) -->
+    <div class="btn-group" style="justify-content: space-between; margin-top: 18px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="backup-btn" onclick="backupDatabase()" title="Unduh file backup data pasien ke memori perangkat">📥 Backup Database (.json)</button>
+        <button class="restore-btn" onclick="document.getElementById('inputRestoreFile').click()" title="Pulihkan data pasien dari file backup">📤 Restore Database</button>
+        <input type="file" id="inputRestoreFile" accept=".json" style="display:none;" onchange="restoreDatabase(event)">
+      </div>
+      <button class="danger" onclick="hapusSemua()">Hapus Semua Data Pasien</button>
+    </div>
+  </div>
+
+  <!-- Hasil Generate WhatsApp dengan Filter DPJP -->
+  <div class="card">
+    <h3>Hasil Format Laporan WhatsApp Siap Salin</h3>
+
+    <div class="filter-box">
+      <b style="font-size:13px; color:#0f2b48;">Pilih DPJP / Filter Laporan:</b>
+      <select id="filterDPJPReport">
+        <option value="SEMUA">-- Semua Pasien (Semua DPJP) --</option>
+      </select>
+    </div>
+
+    <div class="btn-group">
+      <button onclick="generateSlaberan()">Buat Format Slaberan</button>
+      <button onclick="generateFollowUp()">Buat Format Follow-Up</button>
+      <button class="alt" onclick="salinTeks()">Salin ke Clipboard</button>
+    </div>
+    <br>
+    <div class="output-area" id="outputArea">Format laporan WhatsApp akan muncul di sini...</div>
+  </div>
+
+</div>
+
+<!-- Lembar Cetak Print PDF dengan Panduan Rekomendasi PPK Otomatis -->
+<div id="printResumeArea"></div>
+
+<!-- Modal Dialog Panduan Klinis Pemeriksaan Neurologi -->
+<div class="modal-backdrop" id="modalPanduan" onclick="closeInfo(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h4 id="mJudul">Judul Pemeriksaan</h4>
+      <button class="modal-close" onclick="hideModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="mKonten"></div>
+  </div>
+</div>
+
+<script>
+  // Kunci Database Master Permanen
+  const DB_KEY = 'neuro_db_master';
+
+  // Fungsi Migrasi Cerdas Multi-Versi
+  function loadDataPasien() {
+    const rawMaster = localStorage.getItem(DB_KEY);
+    if (rawMaster) {
+      try {
+        const parsed = JSON.parse(rawMaster);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+
+    const versions = [
+      'neuro_db_v10', 'neuro_db_v9', 'neuro_db_v8', 'neuro_db_v7', 
+      'neuro_db_v6', 'neuro_db_v5', 'neuro_db_v4', 'neuro_db_v3', 
+      'neuro_db_v2', 'neuro_patients', 'neuro_db_clean'
+    ];
+
+    for (let key of versions) {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            localStorage.setItem(DB_KEY, JSON.stringify(parsed));
+            return parsed;
+          }
+        } catch (e) {}
+      }
+    }
+    return [];
+  }
+
+  let pasienList = loadDataPasien();
+  let editIndex = -1;
+
+  // Tanggal Otomatis Hari Ini
+  function setTanggalOtomatis(force = false) {
+    const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    
+    const now = new Date();
+    const namaHari = hari[now.getDay()];
+    const tgl = now.getDate();
+    const namaBulan = bulan[now.getMonth()];
+    const tahun = now.getFullYear();
+
+    const tglInput = document.getElementById('tglLaporan');
+    if (force || !tglInput.value) {
+      tglInput.value = `${namaHari}, ${tgl} ${namaBulan} ${tahun}`;
+    }
+  }
+
+  // Profil Koas
+  function muatOtomatisKoas() {
+    const profilTersimpan = JSON.parse(localStorage.getItem('neuro_active_koas')) || null;
+    if (profilTersimpan) {
+      if (profilTersimpan.nama) document.getElementById('koasNama').value = profilTersimpan.nama;
+      if (profilTersimpan.nim) document.getElementById('koasNim').value = profilTersimpan.nim;
+    }
+    muatDropdownProfilKoas();
+  }
+
+  function simpanOtomatisKoas() {
+    const nama = document.getElementById('koasNama').value.trim();
+    const nim = document.getElementById('koasNim').value.trim();
+    localStorage.setItem('neuro_active_koas', JSON.stringify({ nama, nim }));
+
+    if (nama && nim) {
+      let koleksi = JSON.parse(localStorage.getItem('neuro_koas_profiles')) || [];
+      const index = koleksi.findIndex(k => k.nim === nim || k.nama.toLowerCase() === nama.toLowerCase());
+      if (index === -1) {
+        koleksi.unshift({ nama, nim });
+      } else {
+        koleksi[index] = { nama, nim };
+      }
+      localStorage.setItem('neuro_koas_profiles', JSON.stringify(koleksi));
+      muatDropdownProfilKoas();
+    }
+  }
+
+  function muatDropdownProfilKoas() {
+    const koleksi = JSON.parse(localStorage.getItem('neuro_koas_profiles')) || [];
+    const sel = document.getElementById('pilihProfilKoas');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Profil Tersimpan...</option>';
+    koleksi.forEach((k, idx) => {
+      const opt = document.createElement('option');
+      opt.value = idx;
+      opt.innerText = k.nama;
+      sel.appendChild(opt);
+    });
+  }
+
+  function gantiProfilKoas(idx) {
+    if (idx === '') return;
+    const koleksi = JSON.parse(localStorage.getItem('neuro_koas_profiles')) || [];
+    const p = koleksi[idx];
+    if (p) {
+      document.getElementById('koasNama').value = p.nama;
+      document.getElementById('koasNim').value = p.nim;
+      localStorage.setItem('neuro_active_koas', JSON.stringify(p));
+    }
+  }
+
+  // Basis Pengetahuan Pedoman Klinis Neurologi
+  const PANDUAN_NEURO = {
+    td: {
+      judul: "Tekanan Darah & Mean Arterial Pressure (MAP)",
+      html: `
+        <div class="modal-section">
+          <b>Formula & Perfusi:</b>
+          <br>Formula MAP: <b>[(2 × Diastol) + Sistol] / 3</b>
+        </div>
+        <div class="modal-section">
+          <b>Target Klinis:</b>
+          <br>• Stroke Iskemik (tanpa trombolisis): permisif hingga &lt; 220/120 mmHg.
+          <br>• Stroke Iskemik (trombolisis rtPA): target &lt; 185/110 mmHg.
+          <br>• Stroke Hemoragik: penurunan bertahap target sistol 130 - 140 mmHg.
+        </div>
+      `
+    },
+    nrs: {
+      judul: "Numeric Rating Scale (NRS)",
+      html: `
+        <div class="modal-section">
+          <b>Skala 0 - 10:</b>
+          <br>• 0: Bebas nyeri | 1 - 3: Nyeri Ringan | 4 - 6: Nyeri Sedang | 7 - 10: Nyeri Berat.
+        </div>
+      `
+    },
+    gcs: {
+      judul: "Glasgow Coma Scale (GCS)",
+      html: `
+        <div class="modal-section">
+          <b>Skor Komponen:</b>
+          <br>• Eye (1-4) | Motorik (1-6) | Verbal (1-5 / X: Afasia/ETT).
+          <br>• Compos Mentis (14-15), Apatis (12-13), Somnolen (10-11), Sopor (7-9), Coma (≤6).
+        </div>
+      `
+    },
+    fkl: {
+      judul: "Fungsi Kortikal Luhur (FKL)",
+      html: `<div class="modal-section">Evaluasi orientasi (waktu/tempat/orang), kelancaran bicara, komprehensi, penamaan, dan memori.</div>`
+    },
+    ncranialis: {
+      judul: "Pemeriksaan Nervus Cranialis (N. I - N. XII)",
+      html: `
+        <div class="modal-section">
+          <b>Panduan Pemeriksaan Bedside:</b>
+          <br>• <b>N. II, III:</b> Ukuran pupil (isokor 2.5-3.5 mm), refleks cahaya langsung & konsensuil (RCL/RCO).
+          <br>• <b>N. III, IV, VI:</b> Gerakan bola mata 6 arah kardinal, ptosis, strabismus, nistagmus.
+          <br>• <b>N. V:</b> Sensibilitas wajah, motorik gigitan m. masseter.
+          <br>• <b>N. VII:</b> Plica nasolabialis, kerutan dahi, mengangkat alis, meringis (bedakan paresis tipe UMN vs LMN / Bell's Palsy).
+          <br>• <b>N. IX, X:</b> Disfagia, posisi uvula, arkus faring simetris, refleks muntah.
+          <br>• <b>N. XI:</b> Mengangkat bahu (m. trapezius) dan menoleh melawan tahanan (m. sternocleidomastoideus).
+          <br>• <b>N. XII:</b> Kedudukan lidah saat dijulurkan (deviasi ke sisi lesi pada LMN), atrofi/fasikulasi.
+        </div>
+      `
+    },
+    kakukuduk: {
+      judul: "Rangsang Meningeal: Kaku Kuduk",
+      html: `<div class="modal-section">Fleksi pasif kepala ke arah sternum. Positif bila terdapat tahanan kuat sebelum dagu menyentuh dada.</div>`
+    },
+    brudzinski: {
+      judul: "Rangsang Meningeal: Brudzinski I & II",
+      html: `<div class="modal-section">Brudzinski I (fleksi leher timbul fleksi lutut/panggul) & Brudzinski II (fleksi satu tungkai timbul fleksi reflektorik kontralateral).</div>`
+    },
+    kernig: {
+      judul: "Rangsang Meningeal: Kernig Sign",
+      html: `<div class="modal-section">Fleksi sendi panggul 90°, lalu ekstensikan lutut. Positif jika timbul tahanan/nyeri sebelum sudut 135°.</div>`
+    },
+    pergerakan: {
+      judul: "Pemeriksaan Pergerakan Motorik",
+      html: `<div class="modal-section">Evaluasi gerakan volunter aktif (simetris/hemiparesis) dan gerakan involunter (tremor, korea, atetosis).</div>`
+    },
+    tonus: {
+      judul: "Pemeriksaan Tonus Otot",
+      html: `<div class="modal-section">Normotonus / Spastisitas (Clasp-knife, UMN) / Rigiditas (Lead-pipe/Cogwheel, Parkinson) / Flaccid (LMN).</div>`
+    },
+    kekuatan: {
+      judul: "Skala Kekuatan Otot (MRC 0 - 5)",
+      html: `<div class="modal-section">5: Normal | 4: Lawan tahanan sedang | 3: Lawan gravitasi | 2: Gerak horizontal | 1: Kontraksi minimal | 0: Paralisis total.</div>`
+    },
+    reffisio: {
+      judul: "Refleks Fisiologis",
+      html: `<div class="modal-section">BPR (C5-C6), TPR (C7-C8), KPR (L2-L4), APR (S1-S2). Normal: +2/+2.</div>`
+    },
+    refpato: {
+      judul: "Refleks Patologis",
+      html: `<div class="modal-section">Babinski, Chaddock, Oppenheim, Gordon, Schaeffer, Hoffman-Tromner. Positif menandakan lesi UMN (Piramidal).</div>`
+    },
+    sensorik: {
+      judul: "Sistem Sensorik",
+      html: `<div class="modal-section">Pemeriksaan rasa eksteroseptif (nyeri raba halus) dan proprioseptif (posisi sendi, rasa getar).</div>`
+    },
+    otonom: {
+      judul: "Fungsi Otonom",
+      html: `<div class="modal-section">Evaluasi miksi (retensi, inkontinensia, kateter) dan defekasi (obstipasi lama).</div>`
+    },
+    provokasi: {
+      judul: "Tes Provokasi Radikulopati",
+      html: `<div class="modal-section">Laseque (SLR &lt; 70°), Patrick (sendi panggul), Kontra-Patrick (sendi sakroiliaka).</div>`
+    }
+  };
+
+  function showInfo(key, e) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    const data = PANDUAN_NEURO[key];
+    if (!data) return;
+    document.getElementById('mJudul').innerText = data.judul;
+    document.getElementById('mKonten').innerHTML = data.html;
+    document.getElementById('modalPanduan').style.display = 'flex';
+  }
+
+  function hideModal() {
+    document.getElementById('modalPanduan').style.display = 'none';
+  }
+
+  function closeInfo(e) {
+    if (e.target.id === 'modalPanduan') hideModal();
+  }
+
+  // Modul Memori Saran Cepat
+  let wordMemory = {};
+  try {
+    wordMemory = JSON.parse(localStorage.getItem('neuro_word_memory')) || {};
+  } catch (e) {
+    wordMemory = {};
+  }
+
+  function saveToMemory(fieldId, value) {
+    if (!value || !value.trim()) return;
+    const cleanVal = value.trim();
+    if (!wordMemory[fieldId]) wordMemory[fieldId] = [];
+    if (!wordMemory[fieldId].includes(cleanVal)) {
+      wordMemory[fieldId].unshift(cleanVal);
+      if (wordMemory[fieldId].length > 30) wordMemory[fieldId].pop();
+      try {
+        localStorage.setItem('neuro_word_memory', JSON.stringify(wordMemory));
+      } catch (e) {}
+    }
+  }
+
+  function populateAllSuggestions() {
+    const datalistMap = {
+      'koasNama': 'list_koasNama',
+      'koasNim': 'list_koasNim',
+      'pNama': 'list_pNama',
+      'pRM': 'list_pRM',
+      'pBed': 'list_pBed',
+      'pDPJPLainnya': 'list_pDPJPLainnya',
+      'oO2Via': 'list_oO2Via',
+      'oFKL': 'list_oFKL',
+      'oPupil': 'list_oPupil',
+      'oKekuatanSup': 'list_oKekuatanSup',
+      'oKekuatanInf': 'list_oKekuatanInf'
+    };
+
+    for (const [fieldId, listId] of Object.entries(datalistMap)) {
+      const dl = document.getElementById(listId);
+      if (dl && wordMemory[fieldId]) {
+        dl.innerHTML = '';
+        wordMemory[fieldId].forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item;
+          dl.appendChild(opt);
+        });
+      }
+    }
+
+    const textareas = ['pDiag', 'sKeluhanMasuk', 'sKeluhanPagi', 'sRKS', 'sRPD', 'sRPO', 'sAlergi', 'sLainnya', 'oMotPergerakan', 'oMotTonus', 'oSensorik', 'oRefFisio', 'oRefPato', 'oOtonom', 'oLainLain', 'pPlan', 'pInstruksi'];
+    
+    textareas.forEach(id => {
+      const ta = document.getElementById(id);
+      if (!ta) return;
+      const parent = ta.previousElementSibling;
+      if (!parent) return;
+      const sel = parent.querySelector('.history-select');
+      if (sel && wordMemory[id]) {
+        sel.innerHTML = '<option value="">↺ Histori...</option>';
+        wordMemory[id].forEach(txt => {
+          const opt = document.createElement('option');
+          opt.value = txt;
+          opt.innerText = txt.length > 28 ? txt.substring(0, 25) + '...' : txt;
+          sel.appendChild(opt);
+        });
+      }
+    });
+  }
+
+  function insertHistory(targetId, val) {
+    if (!val) return;
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    if (el.value.trim() === '') {
+      el.value = val;
+    } else {
+      el.value = el.value.trim() + '\n' + val;
+    }
+    const parent = el.previousElementSibling;
+    if (parent) {
+      const sel = parent.querySelector('.history-select');
+      if (sel) sel.value = '';
+    }
+    el.focus();
+  }
+
+  function updateFilterOptions() {
+    const filterSelect = document.getElementById('filterDPJPReport');
+    const filterTableDPJP = document.getElementById('filterTabelDPJP');
+    const filterTableRuang = document.getElementById('filterTabelRuang');
+
+    const listDPJP = [];
+    const listRuang = [];
+
+    pasienList.forEach(p => {
+      const cleanDoc = p.dpjp.replace(/\(konsul\)/ig, '').trim();
+      if (cleanDoc && !listDPJP.includes(cleanDoc)) listDPJP.push(cleanDoc);
+      if (p.ruang && !listRuang.includes(p.ruang)) listRuang.push(p.ruang);
+    });
+
+    if (filterSelect) {
+      const curVal = filterSelect.value;
+      filterSelect.innerHTML = '<option value="SEMUA">-- Semua Pasien (Semua DPJP) --</option>';
+      listDPJP.forEach(doc => {
+        const opt = document.createElement('option');
+        opt.value = doc;
+        opt.innerText = `Khusus Pasien ${doc}`;
+        filterSelect.appendChild(opt);
+      });
+      if (listDPJP.includes(curVal)) filterSelect.value = curVal;
+    }
+
+    if (filterTableDPJP) {
+      const curDPJP = filterTableDPJP.value;
+      filterTableDPJP.innerHTML = '<option value="SEMUA">Semua DPJP</option>';
+      listDPJP.forEach(doc => {
+        const opt = document.createElement('option');
+        opt.value = doc;
+        opt.innerText = doc;
+        filterTableDPJP.appendChild(opt);
+      });
+      if (listDPJP.includes(curDPJP)) filterTableDPJP.value = curDPJP;
+    }
+
+    if (filterTableRuang) {
+      const curRuang = filterTableRuang.value;
+      filterTableRuang.innerHTML = '<option value="SEMUA">Semua Kamar/Ruang</option>';
+      listRuang.forEach(rng => {
+        const opt = document.createElement('option');
+        opt.value = rng;
+        opt.innerText = rng;
+        filterTableRuang.appendChild(opt);
+      });
+      if (listRuang.includes(curRuang)) filterTableRuang.value = curRuang;
+    }
+  }
+
+  function formatNamaLengkap(gelar, nama) {
+    if (!gelar || !gelar.trim()) return nama;
+    return `${gelar} ${nama}`;
+  }
+
+  function toggleCustomDPJP() {
+    const dpjpSelect = document.getElementById('pDPJP').value;
+    const dpjpCustom = document.getElementById('pDPJPLainnya');
+    if (dpjpSelect === 'Lainnya') {
+      dpjpCustom.style.display = 'block';
+      dpjpCustom.focus();
+    } else {
+      dpjpCustom.style.display = 'none';
+      dpjpCustom.value = '';
+    }
+  }
+
+  function toggleStatusPasien() {
+    const status = document.getElementById('pStatus').value;
+    const secKelPagi = document.getElementById('secKeluhanPagi');
+    const secKelMasuk = document.getElementById('secKeluhanMasuk');
+
+    if (status === 'Baru') {
+      secKelMasuk.style.display = 'block';
+      secKelPagi.style.display = 'none';
+    } else {
+      secKelMasuk.style.display = 'block';
+      secKelPagi.style.display = 'block';
+    }
+  }
+
+  function hitungHariRawat(tglMasukStr) {
+    if (!tglMasukStr) return null;
+    const tglMasuk = new Date(tglMasukStr + 'T00:00:00');
+    if (isNaN(tglMasuk.getTime())) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const diffTime = today.getTime() - tglMasuk.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const hariKe = diffDays + 1;
+    return hariKe > 0 ? hariKe : 1;
+  }
+
+  function formatTanggalID(tglMasukStr) {
+    if (!tglMasukStr) return '';
+    const parts = tglMasukStr.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return tglMasukStr;
+  }
+
+  function hitungMAP(sis, dia) {
+    if (!sis || !dia) return null;
+    const s = parseFloat(sis);
+    const d = parseFloat(dia);
+    if (isNaN(s) || isNaN(d)) return null;
+    return Math.round(((2 * d) + s) / 3);
+  }
+
+  function hitungKesadaran(e, m, v) {
+    if (v === 'X') return `E${e}M${m}Vx`;
+    const total = parseInt(e) + parseInt(m) + parseInt(v);
+    let label = 'Compos Mentis';
+    if (total <= 3) label = 'Coma';
+    else if (total <= 6) label = 'Sopor';
+    else if (total <= 9) label = 'Somnolen';
+    else if (total <= 13) label = 'Apatis';
+    else label = 'Compos Mentis';
+
+    return `E${e}M${m}V${v} (${total} - ${label})`;
+  }
+
+  function interpretasiNRS(nrs) {
+    if (nrs === '' || nrs === null) return '';
+    const val = parseInt(nrs);
+    if (isNaN(val)) return '';
+    if (val === 0) return '0 (Tidak Nyeri)';
+    if (val <= 3) return `${val} (Nyeri Ringan)`;
+    if (val <= 6) return `${val} (Nyeri Sedang)`;
+    return `${val} (Nyeri Berat)`;
+  }
+
+  function getSelectedDPJP() {
+    const val = document.getElementById('pDPJP').value;
+    if (val === 'Lainnya') {
+      return document.getElementById('pDPJPLainnya').value.trim() || 'dr. Sp.N';
+    }
+    return val;
+  }
+
+  function formatFieldMulti(prefix, val) {
+    if (!val || !val.trim()) return '';
+    if (val.includes('\n')) {
+      return `${prefix} :\n${val}\n`;
+    }
+    return `${prefix} : ${val}\n`;
+  }
+
+  function simpanPasien() {
+    const dpjpFinal = getSelectedDPJP();
+    const data = {
+      status: document.getElementById('pStatus').value,
+      tglMasuk: document.getElementById('pTglMasuk').value,
+      gelar: document.getElementById('pGelar').value,
+      nama: document.getElementById('pNama').value.trim(),
+      usia: document.getElementById('pUsia').value.trim(),
+      rm: document.getElementById('pRM').value.trim(),
+      ruang: document.getElementById('pRuang').value,
+      bed: document.getElementById('pBed').value.trim(),
+      dpjp: dpjpFinal,
+      diag: document.getElementById('pDiag').value.trim(),
+
+      sKelMasuk: document.getElementById('sKeluhanMasuk').value.trim(),
+      sKelPagi: document.getElementById('sKeluhanPagi').value.trim(),
+      sRKS: document.getElementById('sRKS').value.trim(),
+      sRPD: document.getElementById('sRPD').value.trim(),
+      sRPO: document.getElementById('sRPO').value.trim(),
+      sAlergi: document.getElementById('sAlergi').value.trim(),
+      sLainnya: document.getElementById('sLainnya').value.trim(),
+
+      oTDSis: document.getElementById('oTDSistol').value.trim(),
+      oTDDia: document.getElementById('oTDDiastol').value.trim(),
+      oNadi: document.getElementById('oNadi').value.trim(),
+      oRR: document.getElementById('oRR').value.trim(),
+      oSuhu: document.getElementById('oSuhu').value.trim(),
+      oSpO2: document.getElementById('oSpO2').value.trim(),
+      oO2Via: document.getElementById('oO2Via').value.trim(),
+      oNRS: document.getElementById('oNRS').value.trim(),
+      oGCSE: document.getElementById('oGCSE').value,
+      oGCSM: document.getElementById('oGCSM').value,
+      oGCSV: document.getElementById('oGCSV').value,
+      oFKL: document.getElementById('oFKL').value.trim(),
+      oPupil: document.getElementById('oPupil').value.trim(),
+      oRMKaku: document.getElementById('oRMKaku').value,
+      oRMBrud: document.getElementById('oRMBrudzinski').value,
+      oRMKernig: document.getElementById('oRMKernig').value,
+      oMotPerg: document.getElementById('oMotPergerakan').value.trim(),
+      oMotTonus: document.getElementById('oMotTonus').value.trim(),
+      oSensorik: document.getElementById('oSensorik').value.trim(),
+      oKekSup: document.getElementById('oKekuatanSup').value.trim(),
+      oKekInf: document.getElementById('oKekuatanInf').value.trim(),
+      oRefFisio: document.getElementById('oRefFisio').value.trim(),
+      oRefPato: document.getElementById('oRefPato').value.trim(),
+      oOtonom: document.getElementById('oOtonom').value.trim(),
+      oLainLain: document.getElementById('oLainLain').value.trim(),
+
+      pPlan: document.getElementById('pPlan').value.trim(),
+      pInstruksi: document.getElementById('pInstruksi').value.trim()
+    };
+
+    if (!data.nama || !data.rm) {
+      alert("Nama Pasien dan No. RM wajib diisi!");
+      return;
+    }
+
+    saveToMemory('koasNama', document.getElementById('koasNama').value);
+    saveToMemory('koasNim', document.getElementById('koasNim').value);
+    saveToMemory('pNama', data.nama);
+    saveToMemory('pRM', data.rm);
+    saveToMemory('pBed', data.bed);
+    saveToMemory('pDPJPLainnya', document.getElementById('pDPJPLainnya').value);
+    saveToMemory('pDiag', data.diag);
+    saveToMemory('sKelMasuk', data.sKelMasuk);
+    saveToMemory('sKelPagi', data.sKelPagi);
+    saveToMemory('sRKS', data.sRKS);
+    saveToMemory('sRPD', data.sRPD);
+    saveToMemory('sRPO', data.sRPO);
+    saveToMemory('sAlergi', data.sAlergi);
+    saveToMemory('sLainnya', data.sLainnya);
+    saveToMemory('oO2Via', data.oO2Via);
+    saveToMemory('oFKL', data.oFKL);
+    saveToMemory('oPupil', data.oPupil);
+    saveToMemory('oMotPergerakan', data.oMotPerg);
+    saveToMemory('oMotTonus', data.oMotTonus);
+    saveToMemory('oSensorik', data.oSensorik);
+    saveToMemory('oKekSup', data.oKekSup);
+    saveToMemory('oKekInf', data.oKekInf);
+    saveToMemory('oRefFisio', data.oRefFisio);
+    saveToMemory('oRefPato', data.oRefPato);
+    saveToMemory('oOtonom', data.oOtonom);
+    saveToMemory('oLainLain', data.oLainLain);
+    saveToMemory('pPlan', data.pPlan);
+    saveToMemory('pInstruksi', data.pInstruksi);
+
+    if (editIndex === -1) {
+      pasienList.push(data);
+    } else {
+      pasienList[editIndex] = data;
+      editIndex = -1;
+    }
+
+    try {
+      localStorage.setItem(DB_KEY, JSON.stringify(pasienList));
+    } catch(e) {}
+
+    clearForm();
+    renderTable();
+    populateAllSuggestions();
+    updateFilterOptions();
+  }
+
+  function renderTable() {
+    const tbody = document.querySelector('#tabelPasien tbody');
+    tbody.innerHTML = '';
+
+    const filterRuang = document.getElementById('filterTabelRuang') ? document.getElementById('filterTabelRuang').value : 'SEMUA';
+    const filterDPJP = document.getElementById('filterTabelDPJP') ? document.getElementById('filterTabelDPJP').value : 'SEMUA';
+
+    let displayedCount = 0;
+
+    pasienList.forEach((p, idx) => {
+      if (filterRuang !== 'SEMUA' && p.ruang !== filterRuang) return;
+      if (filterDPJP !== 'SEMUA' && !p.dpjp.toLowerCase().includes(filterDPJP.toLowerCase())) return;
+
+      displayedCount++;
+
+      const badge = p.status === 'Baru' 
+        ? `<span class="badge badge-baru">Baru</span>` 
+        : `<span class="badge badge-lama">Lama</span>`;
+
+      const hariRawat = hitungHariRawat(p.tglMasuk);
+      const rawatInfo = hariRawat ? `<br><small style="color:#0284c7; font-weight:600;">Hari ke-${hariRawat}</small>` : '';
+      const namaDisplay = formatNamaLengkap(p.gelar, p.nama);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><b>${p.ruang}</b><br><small>${p.bed || '-'}</small></td>
+        <td>${badge}${rawatInfo}</td>
+        <td><b>${namaDisplay}</b> (${p.usia || '-'} Thn)<br><small>RM: ${p.rm}</small></td>
+        <td><small>${p.dpjp}</small></td>
+        <td>
+          <div style="display:flex; gap:4px; flex-wrap:wrap;">
+            <button onclick="editPasien(${idx})">Edit</button>
+            <button class="pdf-btn" onclick="cetakResumePDF(${idx})">PDF</button>
+            <button class="danger" onclick="hapusPasien(${idx})">Hapus</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('totalBadge').innerText = displayedCount;
+  }
+
+  function editPasien(idx) {
+    editIndex = idx;
+    const p = pasienList[idx];
+
+    document.getElementById('pStatus').value = p.status || 'Lama';
+    toggleStatusPasien();
+
+    document.getElementById('pTglMasuk').value = p.tglMasuk || '';
+    document.getElementById('pGelar').value = p.hasOwnProperty('gelar') ? p.gelar : 'Tn.';
+    document.getElementById('pNama').value = p.nama || '';
+    document.getElementById('pUsia').value = p.usia || '';
+    document.getElementById('pRM').value = p.rm || '';
+    document.getElementById('pRuang').value = p.ruang || 'Cemara (Lt 1)';
+    document.getElementById('pBed').value = p.bed || '';
+
+    let currentDPJP = p.dpjp || '';
+    if (currentDPJP.includes('Deviyanti') || currentDPJP.includes('Devyanty')) {
+      currentDPJP = currentDPJP.includes('(konsul)') 
+        ? 'dr. Deviyanty Syahmi S., Sp.N (konsul)' 
+        : 'dr. Deviyanty Syahmi S., Sp.N';
+    }
+
+    const dpjpSelect = document.getElementById('pDPJP');
+    const predefined = [
+      "dr. Mardiana, Sp.N",
+      "dr. Mardiana, Sp.N (konsul)",
+      "dr. Deviyanty Syahmi S., Sp.N",
+      "dr. Deviyanty Syahmi S., Sp.N (konsul)"
+    ];
+    if (predefined.includes(currentDPJP)) {
+      dpjpSelect.value = currentDPJP;
+      document.getElementById('pDPJPLainnya').style.display = 'none';
+      document.getElementById('pDPJPLainnya').value = '';
+    } else {
+      dpjpSelect.value = 'Lainnya';
+      document.getElementById('pDPJPLainnya').style.display = 'block';
+      document.getElementById('pDPJPLainnya').value = currentDPJP;
+    }
+
+    document.getElementById('pDiag').value = p.diag || '';
+
+    document.getElementById('sKeluhanMasuk').value = p.sKelMasuk || '';
+    document.getElementById('sKeluhanPagi').value = p.sKelPagi || '';
+    document.getElementById('sRKS').value = p.sRKS || '';
+    document.getElementById('sRPD').value = p.sRPD || '';
+    document.getElementById('sRPO').value = p.sRPO || '';
+    document.getElementById('sAlergi').value = p.sAlergi || '';
+    document.getElementById('sLainnya').value = p.sLainnya || '';
+
+    document.getElementById('oTDSistol').value = p.oTDSis || '';
+    document.getElementById('oTDDiastol').value = p.oTDDia || '';
+    document.getElementById('oNadi').value = p.oNadi || '';
+    document.getElementById('oRR').value = p.oRR || '';
+    document.getElementById('oSuhu').value = p.oSuhu || '';
+    document.getElementById('oSpO2').value = p.oSpO2 || '';
+    document.getElementById('oO2Via').value = p.oO2Via || '';
+    document.getElementById('oNRS').value = p.oNRS || '';
+    document.getElementById('oGCSE').value = p.oGCSE || '4';
+    document.getElementById('oGCSM').value = p.oGCSM || '6';
+    document.getElementById('oGCSV').value = p.oGCSV || '5';
+    document.getElementById('oFKL').value = p.oFKL || '';
+    document.getElementById('oPupil').value = p.oPupil || '';
+    document.getElementById('oRMKaku').value = p.oRMKaku || '';
+    document.getElementById('oRMBrudzinski').value = p.oRMBrud || '';
+    document.getElementById('oRMKernig').value = p.oRMKernig || '';
+    document.getElementById('oMotPergerakan').value = p.oMotPerg || '';
+    document.getElementById('oMotTonus').value = p.oMotTonus || '';
+    document.getElementById('oSensorik').value = p.oSensorik || '';
+    document.getElementById('oKekSup').value = p.oKekSup || '';
+    document.getElementById('oKekInf').value = p.oKekInf || '';
+    document.getElementById('oRefFisio').value = p.oRefFisio || '';
+    document.getElementById('oRefPato').value = p.oRefPato || '';
+    document.getElementById('oOtonom').value = p.oOtonom || '';
+    document.getElementById('oLainLain').value = p.oLainLain || '';
+
+    document.getElementById('pPlan').value = p.pPlan || '';
+    document.getElementById('pInstruksi').value = p.pInstruksi || '';
+
+    window.scrollTo({ top: 130, behavior: 'smooth' });
+  }
+
+  function hapusPasien(idx) {
+    if (confirm("Hapus data pasien ini?")) {
+      pasienList.splice(idx, 1);
+      try {
+        localStorage.setItem(DB_KEY, JSON.stringify(pasienList));
+      } catch(e) {}
+      renderTable();
+      updateFilterOptions();
+    }
+  }
+
+  function hapusSemua() {
+    if (confirm("Kosongkan semua daftar pasien?")) {
+      pasienList = [];
+      try {
+        localStorage.removeItem(DB_KEY);
+      } catch(e) {}
+      renderTable();
+      updateFilterOptions();
+    }
+  }
+
+  function clearForm() {
+    editIndex = -1;
+    document.getElementById('pStatus').value = 'Baru';
+    toggleStatusPasien();
+    document.getElementById('pTglMasuk').value = '';
+    document.getElementById('pGelar').value = '';
+    document.getElementById('pNama').value = '';
+    document.getElementById('pUsia').value = '';
+    document.getElementById('pRM').value = '';
+    document.getElementById('pBed').value = '';
+    document.getElementById('pDPJP').selectedIndex = 0;
+    document.getElementById('pDPJPLainnya').style.display = 'none';
+    document.getElementById('pDPJPLainnya').value = '';
+    document.getElementById('pDiag').value = '';
+    document.getElementById('sKeluhanMasuk').value = '';
+    document.getElementById('sKeluhanPagi').value = '';
+    document.getElementById('sRKS').value = '';
+    document.getElementById('sRPD').value = '';
+    document.getElementById('sRPO').value = '';
+    document.getElementById('sAlergi').value = '';
+    document.getElementById('sLainnya').value = '';
+    document.getElementById('oTDSistol').value = '';
+    document.getElementById('oTDDiastol').value = '';
+    document.getElementById('oNadi').value = '';
+    document.getElementById('oRR').value = '';
+    document.getElementById('oSuhu').value = '';
+    document.getElementById('oSpO2').value = '';
+    document.getElementById('oO2Via').value = '';
+    document.getElementById('oNRS').value = '';
+    document.getElementById('oFKL').value = '';
+    document.getElementById('oPupil').value = '';
+    document.getElementById('oRMKaku').value = '';
+    document.getElementById('oRMBrudzinski').value = '';
+    document.getElementById('oRMKernig').value = '';
+    document.getElementById('oMotPergerakan').value = '';
+    document.getElementById('oMotTonus').value = '';
+    document.getElementById('oSensorik').value = '';
+    document.getElementById('oKekSup').value = '';
+    document.getElementById('oKekInf').value = '';
+    document.getElementById('oRefFisio').value = '';
+    document.getElementById('oRefPato').value = '';
+    document.getElementById('oOtonom').value = '';
+    document.getElementById('oLainLain').value = '';
+    document.getElementById('pPlan').value = '';
+    document.getElementById('pInstruksi').value = '';
+  }
+
+  // Engine Rekomendasi Klinis PPK Neurologi PERDOSNI
+  function generateRekomendasiPPK(diagText, e, m, v) {
+    const d = (diagText || '').toLowerCase();
+    const gcsScore = (v === 'X') ? 15 : (parseInt(e) + parseInt(m) + parseInt(v));
+
+    let anamnesis = [];
+    let fisik = [];
+    let penunjang = [];
+
+    if (d.includes('stroke') || d.includes('infark') || d.includes('trombo') || d.includes('emboli') || d.includes('tia')) {
+      anamnesis.push("Waktu pasti onset gejala (Last Known Well / Golden Period rekanalisis rtPA & EVT), progresivitas defisit (mendadak vs bertahap), gejala penyerta (nyeri kepala hebat, muntah proyektil, kejang). Skrining faktor risiko: riwayat DM, hipertensi, dislipidemia, atrial fibrilasi/aritmia, rokok, penyakit jantung koroner.");
+      fisik.push("Skoring NIHSS (National Institutes of Health Stroke Scale), evaluasi detail lateralisasi N.VII & N.XII tipe sentral, pemeriksaan disartria vs afasia motorik/sensorik, reflek patologis Babinski/Chaddock, bising karotis (carotid bruit).");
+      penunjang.push("CT Scan Kepala Polos (evaluasi tanda dini iskemia / skor ASPECTS & eksklusi perdarahan intraserebral), EKG 12 lead (skrining AF/infark miokard), GDS, Darah Lengkap, Faal Hemostasis (PT/APTT/INR), Elektrolit, Profil Lipid, Ureum, Kreatinin, Rontgen Toraks, Ekokardiografi & Karotis Doppler jika dicurigai sumber kardioemboli.");
+    } else if (d.includes('ich') || d.includes('hemoragik') || d.includes('sah') || d.includes('perdarahan') || d.includes('bleeding')) {
+      anamnesis.push("Pemicu onset (aktivitas berat/mengedan), nyeri kepala petir mendadak ('worst headache of life' pada SAH), penurunan kesadaran dini, riwayat hipertensi tidak terkontrol, riwayat konsumsi antikoagulan/antiplatelet.");
+      fisik.push("Pemantauan tanda peningkatan TIK (Trias Cushing: hipertensi bradikardi, respirasi ireguler), rangsang meningeal lengkap (kaku kuduk, Brudzinski I/II, Kernig), ukuran pupil & respon cahaya (skrining tanda herniasi unkus / defisit N.III).");
+      penunjang.push("CT Scan Kepala Polos Cito (hitung volume perdarahan rumus ABC/2, evaluasi midline shift, edema perifokal, dan keterlibatan intraventrikel), PT/APTT/INR, Elektrolit, Analisis Gas Darah jika terintubasi.");
+    } else if (d.includes('cephalgia') || d.includes('chepalgia') || d.includes('headache') || d.includes('migren') || d.includes('migraine') || d.includes('tth') || d.includes('cluster') || d.includes('craniotomi')) {
+      anamnesis.push("Identifikasi 'SNOOP4 Red Flags' (Systemic signs, Neurologic deficit, Onset mendadak, Older age, Pattern change, Posisi tubuh), sifat nyeri (berdenyut, terikat, menusuk), durasi, lokasi (unilateral vs holokranial), gejala otonom (lakrimasi, rinorea), fotofobia, fonofobia, nausea, muntah.");
+      fisik.push("Pemeriksaan funduskopi (papiledema), palpasi arteri temporalis & nyeri tekan perikranial/leher posterior, tanda rangsang meningeal, defisit neurologis fokal N.II s/d N.XII, status luka operasi & tanda kebocoran LCS pada post-craniotomi.");
+      penunjang.push("CT-Scan Kepala / MRI Kepala dengan kontras jika terdapat red flags neurologis atau kecurigaan lesi intrakranial sekunder; Darah lengkap, LED/CRP (skrining vaskulitis/arteritis temporalis).");
+    } else if (d.includes('vertigo') || d.includes('bppv') || d.includes('dizziness') || d.includes('meniere') || d.includes('labirinitis')) {
+      anamnesis.push("Karakteristik ilusi gerak (berputar vs melayang/goyah), durasi serangan (detik pada BPPV, menit-jam pada Meniere/TIA, hari pada neuritis vestibuler), dipicu perubahan posisi kepala, tinnitus, sensasi telinga penuh, penurunan pendengaran, diplopia, disfagia.");
+      fisik.push("Manuver Dix-Hallpike & Supine Roll Test, Tes HINTS (Head Impulse, Nystagmus, Test of Skew — sensitif membedakan stroke fosa posterior vs perifer), Tes Romberg & Romberg dipertajam, Stepping test, Disdiadokokinesis, Heel-to-knee & Finger-to-nose.");
+      penunjang.push("MRI Kepala Fosa Posterior / DWI (jika terdapat HINTS mengarah sentral atau skor ABCD2 tinggi); Audiometri atas indikasi.");
+    } else if (d.includes('meningitis') || d.includes('ensefalitis') || d.includes('abses') || d.includes('meningo')) {
+      anamnesis.push("Trias meningitis (demam, nyeri kepala, kaku kuduk), riwayat kejang, penurunan kesadaran/delirium, riwayat otitis media supuratif kronik (OMSK), sinusitis, tuberkulosis, infeksi paru atau status imunodefisiensi (HIV).");
+      fisik.push("Tanda rangsang meningeal (kaku kuduk, Brudzinski I & II, Kernig sign), status kesadaran & orientasi FKL, funduskopi (papiledema), defisit fokal N.Cranialis.");
+      penunjang.push("Lumbal Pungsi (analisis cairan serebrospinal: hitung sel, protein, glukosa, rasio glukosa CSS/serum, pewarnaan Gram, kultur, PCR TB/Viral) — WAJIB didahului CT-Scan Kepala jika ada tanda defisit fokal, papiledema, atau kejang baru untuk mencegah herniasi; Darah lengkap, prokalsitonin, HIV serologi.");
+    } else if (d.includes('epilep') || d.includes('kejang') || d.includes('seizure') || d.includes('convul')) {
+      anamnesis.push("Semiologi bangkitan (aura motorik/sensorik, gerakan fokal vs umum, deviasi mata, inkontinensia urin, lidah tergigit), durasi kejang, lama fase bingung pasca-kejang (post-ictal state), faktor pencetus (putus OAE, demam, kurang tidur, alkohol), riwayat kejang demam/trauma kepala masa lalu.");
+      fisik.push("Tanda trauma lidah/kepala akibat jatuh, defisit fokal pasca-iktal sementara (Todd's Paresis), refleks patologis, pemeriksaan fungsi kognitif/FKL.");
+      penunjang.push("Elektroensefalografi (EEG rutin / sleep deprivation), MRI Kepala (protokol epilepsi) untuk mencari sklerosis hipokampus, tumor, atau malformasi vaskuler; Laboratorium: GDS, Elektrolit serum (Natrium, Kalsium, Magnesium), Toksikologi cito jika dicurigai intoksikasi.");
+    } else if (d.includes('hnp') || d.includes('radikulo') || d.includes('lbp') || d.includes('ischialgia') || d.includes('lumbal') || d.includes('cervical') || d.includes('spondilo')) {
+      anamnesis.push("Nyeri menjalar sesuai dermatom (dermatomal shooting pain), sensasi kesemutan/baal (parestesia), diperberat batuk/bersin/mengedan, ada/tidaknya 'Red Flags' Sindrom Kauda Ekuina (retensi/inkontinensia urin, 'saddle anesthesia', kelemahan kedua tungkai progresif cepat).");
+      fisik.push("Tes Provokasi: Laseque (Straight Leg Raising/SLR), Bragard, Sicard, Patrick, Kontra-Patrick, Spurling test & Lhermitte sign (jika servikal), evaluasi motorik miotom L4-L5-S1, refleks APR & KPR, tonus sfingter ani (TSA).");
+      penunjang.push("MRI Tulang Belakang (Lumbosakral/Servikal) Non-Kontras, Rontgen Tulang Belakang AP/Lateral/Oblique, Elektromiografi (EMG/NCV) untuk pemetaan denervasi radiks saraf.");
+    } else if (d.includes('gbs') || d.includes('guillain') || d.includes('neuropati') || d.includes('cts') || d.includes('myasthenia') || d.includes('poliradikulo')) {
+      anamnesis.push("Pola kelemahan (ascenden simetris dari distal ke proksimal pada GBS; fluktuasi/fatigabilitas sore hari pada Myasthenia Gravis), disfagia, rasa tebal pola sarung tangan & kaus kaki (glove-stocking), sesak nafas.");
+      fisik.push("Refleks fisiologis APR/KPR/BPR (arefleksia/hiporefleksia menyeluruh pada GBS), tes kelelahan/Simpson test & Wartenberg test (Myasthenia Gravis), tes kapasitas vital paru (Single Breath Count Test), tes Phalen & Tinel (CTS).");
+      penunjang.push("Elektroneuromiografi (ENMG: evaluasi demielinisasi/aksonal), Lumbal Pungsi (disosiasi sitoalbumin pada GBS), Antibodi Anti-AChR (Myasthenia), CT Toraks (skrining timoma), Laboratorium profil metabolik/HbA1c.");
+    } else if (d.includes('cedera') || d.includes('trauma') || d.includes('cidera') || d.includes('concuss')) {
+      anamnesis.push("Mekanisme cedera, riwayat pingsan (loss of consciousness), amnesia retrograd/anterograd, muntah proyektil, lucid interval (curiga perdarahan epidural/EDH).");
+      fisik.push("GCS serial, tanda fraktur basis kranii (Battle sign, racoon eyes, rhinorrhea, otorrhea), pupil anisokor, defisit motorik fokal.");
+      penunjang.push("CT Scan Kepala Non-Kontras dengan Bone Window, Rontgen Servikal (jika curiga cedera servikal penyerta).");
+    } else {
+      anamnesis.push("Eksplorasi riwayat keluhan utama secara kronologis (onset, sifat keluhan, faktor pemberat/peringan), riwayat keluhan serupa, riwayat pengobatan rutin, komorbiditas vaskular.");
+      fisik.push("Pemeriksaan status neurologi komprehensif: kesadaran GCS, 12 Nervus Cranialis lengkap, motorik (pergerakan, tonus, kekuatan, refleks fisiologis & patologis), sensibilitas, rangsang meningeal, dan fungsi serebelar.");
+      penunjang.push("Pemeriksaan laboratorium darah rutin, kimia darah (GDS, ureum, kreatinin, SGOT/SGPT, elektrolit), radiologis sesuai indikasi klinis.");
+    }
+
+    if (gcsScore <= 13) {
+      anamnesis.unshift("⚠️ ALERTA PENURUNAN KESADARAN: Telusuri riwayat kejang sebelum tidak sadar, trauma kepala tersembunyi, demam mendadak, riwayat overdosis obat/zat toksik, serta penyakit hepar, ginjal, atau hipo/hiperglikemia berat.");
+      fisik.unshift("⚠️ Pantau patensi jalan nafas (Airway/Breathing/Circulation), refleks batang otak (pupil, kornea, dolls eye / oculocephalic reflex, gag reflex), pola pernapasan abnormal, dan tanda-tanda lateralisasi.");
+      penunjang.unshift("Cek GDS stick cito, Analisis Gas Darah & Elektrolit cito, CT Scan Kepala cito, Toksikologi urin atas indikasi.");
+    }
+
+    return { anamnesis, fisik, penunjang };
+  }
+
+  // Cetak Lembar Resume PDF Medis + Rekomendasi PPK
+  function cetakResumePDF(idx) {
+    const p = pasienList[idx];
+    const namaKoas = document.getElementById('koasNama').value.trim() || "Dokter Muda";
+    const nimKoas = document.getElementById('koasNim').value.trim() || "-";
+    const tgl = document.getElementById('tglLaporan').value.trim() || new Date().toLocaleDateString('id-ID');
+    const namaPasien = formatNamaLengkap(p.gelar, p.nama);
+    const mapVal = hitungMAP(p.oTDSis, p.oTDDia);
+    const gcsVal = hitungKesadaran(p.oGCSE, p.oGCSM, p.oGCSV);
+    const hariRawat = hitungHariRawat(p.tglMasuk);
+
+    const panduan = generateRekomendasiPPK(p.diag, p.oGCSE, p.oGCSM, p.oGCSV);
+
+    const printArea = document.getElementById('printResumeArea');
+    printArea.innerHTML = `
+      <div style="text-align:center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 14px;">
+        <h2 style="margin:0; font-size:16pt; text-transform:uppercase;">RESUME FOLLOW-UP HARIAN PASIEN NEUROLOGI</h2>
+        <p style="margin:3px 0 0 0; font-size:10pt;">Fakultas Kedokteran Universitas Muslim Indonesia | ${tgl}</p>
+      </div>
+
+      <table style="width:100%; border:none; margin-bottom:10px; font-size:10.5pt;">
+        <tr>
+          <td style="border:none; width:50%;"><b>Nama Pasien:</b> ${namaPasien} (${p.usia || '-'} Thn)</td>
+          <td style="border:none; width:50%;"><b>DPJP:</b> ${p.dpjp}</td>
+        </tr>
+        <tr>
+          <td style="border:none;"><b>No. RM:</b> ${p.rm}</td>
+          <td style="border:none;"><b>Ruang / Bed:</b> ${p.ruang} / ${p.bed || '-'}</td>
+        </tr>
+        <tr>
+          <td style="border:none;"><b>Diagnosis:</b> ${p.diag || '-'}</td>
+          <td style="border:none;"><b>Lama Rawat:</b> ${hariRawat ? 'Hari ke-' + hariRawat : '-'} (Masuk: ${formatTanggalID(p.tglMasuk) || '-'})</td>
+        </tr>
+      </table>
+
+      <hr style="border:0; border-top:1px solid #94a3b8; margin:8px 0;">
+
+      <h3 style="margin:4px 0; font-size:11.5pt; color:#0f2b48;">SUBJECTIVE (S/)</h3>
+      <p style="margin:2px 0;"><b>Keluhan Pagi:</b> ${p.sKelPagi || '-'}</p>
+      <p style="margin:2px 0;"><b>Keluhan Masuk:</b> ${p.sKelMasuk || '-'}</p>
+      <p style="margin:2px 0;"><b>RPD:</b> ${p.sRPD || '-'} | <b>RPO:</b> ${p.sRPO || '-'} | <b>Alergi:</b> ${p.sAlergi || '-'}</p>
+
+      <hr style="border:0; border-top:1px solid #94a3b8; margin:8px 0;">
+
+      <h3 style="margin:4px 0; font-size:11.5pt; color:#0f2b48;">OBJECTIVE (O/)</h3>
+      <p style="margin:2px 0;"><b>TTV:</b> TD: ${p.oTDSis || '-'}/${p.oTDDia || '-'} mmHg ${mapVal ? '(MAP '+mapVal+' mmHg)' : ''} | N: ${p.oNadi || '-'} x/m | RR: ${p.oRR || '-'} x/m | S: ${p.oSuhu || '-'} °C | SpO2: ${p.oSpO2 || '-'}% via ${p.oO2Via || 'RA'}</p>
+      <p style="margin:2px 0;"><b>GCS:</b> ${gcsVal} | <b>NRS:</b> ${interpretasiNRS(p.oNRS) || '-'}</p>
+      <p style="margin:2px 0;"><b>N. Cranialis:</b> ${p.oPupil || '-'}</p>
+      <p style="margin:2px 0;"><b>RM:</b> Kaku Kuduk ${p.oRMKaku || '-'}, Brudzinski ${p.oRMBrud || '-'}, Kernig ${p.oRMKernig || '-'}</p>
+      <p style="margin:2px 0;"><b>Motorik:</b> Kekuatan Atas: ${p.oKekSup || '-'} | Bawah: ${p.oKekInf || '-'} | Tonus: ${p.oMotTonus || '-'}</p>
+      <p style="margin:2px 0;"><b>Refleks Fisiologis:</b> ${p.oRefFisio || '-'} | <b>Patologis:</b> ${p.oRefPato || '-'}</p>
+      <p style="margin:2px 0;"><b>Sensorik:</b> ${p.oSensorik || '-'} | <b>Otonom:</b> ${p.oOtonom || '-'}</p>
+
+      <hr style="border:0; border-top:1px solid #94a3b8; margin:8px 0;">
+
+      <h3 style="margin:4px 0; font-size:11.5pt; color:#0f2b48;">PLANNING (P/) & INSTRUKSI (I/)</h3>
+      <p style="margin:2px 0; white-space:pre-wrap;"><b>Planning:</b>\n${p.pPlan || '-'}</p>
+      <p style="margin:2px 0; white-space:pre-wrap;"><b>Instruksi:</b>\n${p.pInstruksi || '-'}</p>
+
+      <!-- KOTAK KHUSUS REKOMENDASI PANDUAN PRAKTIK KLINIS (PPK) -->
+      <div style="margin-top:12px; padding:10px 12px; border:1px solid #0284c7; background-color:#f0f9ff; border-radius:6px; font-size:10pt;">
+        <b style="color:#0369a1; font-size:10.5pt; display:block; margin-bottom:4px;">📋 REKOMENDASI KLINIS BERDASARKAN PPK NEUROLOGI PERDOSNI:</b>
+        <div style="margin-bottom:6px;">
+          <b>1. Sasaran Anamnesis Lanjutan:</b>
+          <br>${panduan.anamnesis.join('<br>')}
+        </div>
+        <div style="margin-bottom:6px;">
+          <b>2. Prioritas Pemeriksaan Fisik & Neurologis:</b>
+          <br>${panduan.fisik.join('<br>')}
+        </div>
+        <div>
+          <b>3. Usulan Pemeriksaan Penunjang:</b>
+          <br>${panduan.penunjang.join('<br>')}
+        </div>
+      </div>
+
+      <div style="margin-top:28px; display:flex; justify-content:flex-end;">
+        <div style="text-align:center; width:220px; font-size:10.5pt;">
+          <p style="margin:0;">Dokter Muda Pemeriksa,</p>
+          <br><br><br>
+          <p style="margin:0; font-weight:bold; text-decoration:underline;">${namaKoas}</p>
+          <p style="margin:0;">Stambuk: ${nimKoas}</p>
+        </div>
+      </div>
+    `;
+
+    window.print();
+  }
+
+  // Backup Database ke File JSON
+  function backupDatabase() {
+    const backupObj = {
+      version: 'master',
+      timestamp: new Date().toISOString(),
+      patients: pasienList,
+      memory: wordMemory,
+      activeKoas: JSON.parse(localStorage.getItem('neuro_active_koas') || '{}'),
+      koasProfiles: JSON.parse(localStorage.getItem('neuro_koas_profiles') || '[]')
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj, null, 2));
+    const dlAnchor = document.createElement('a');
+    const tglSkrg = new Date().toISOString().slice(0, 10);
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", `backup_pasien_neuro_${tglSkrg}.json`);
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+  }
+
+  // Restore Database dari File JSON
+  function restoreDatabase(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.patients && Array.isArray(data.patients)) {
+          pasienList = data.patients;
+          localStorage.setItem(DB_KEY, JSON.stringify(pasienList));
+          
+          if (data.memory) {
+            wordMemory = data.memory;
+            localStorage.setItem('neuro_word_memory', JSON.stringify(wordMemory));
+          }
+          if (data.activeKoas) {
+            localStorage.setItem('neuro_active_koas', JSON.stringify(data.activeKoas));
+          }
+          if (data.koasProfiles) {
+            localStorage.setItem('neuro_koas_profiles', JSON.stringify(data.koasProfiles));
+          }
+
+          renderTable();
+          populateAllSuggestions();
+          updateFilterOptions();
+          muatOtomatisKoas();
+          alert(`Sukses memulihkan ${pasienList.length} data pasien!`);
+        } else {
+          alert("Format file cadangan tidak sesuai!");
+        }
+      } catch (err) {
+        alert("Gagal membaca file backup JSON!");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function filterDaftarPasien(filterDoc) {
+    if (filterDoc === "SEMUA") return pasienList;
+    return pasienList.filter(p => p.dpjp.toLowerCase().includes(filterDoc.toLowerCase()));
+  }
+
+  function generateSlaberan() {
+    const tgl = document.getElementById('tglLaporan').value.trim() || "Hari ini";
+    const filterDoc = document.getElementById('filterDPJPReport').value;
+    const targetPasien = filterDaftarPasien(filterDoc);
+
+    let docTitle = filterDoc === "SEMUA" ? "" : ` (${filterDoc})`;
+    let text = `Assalamualaikum warahmatullahi wabarakatuh dok, tabe dok, mohon izin mengirimkan slaberan hari ini dok\n`;
+    text += `🌸*Slaberan Pasien Neurologi${docTitle}*🌸\n${tgl}\n\n`;
+
+    const strukturRuangan = [
+      { grup: "Lantai 1", items: ["Anggrek (Lt 1)", "Bougenville (Lt 1)", "Cemara (Lt 1)", "Dahlia (Lt 1)", "Edelwais (Lt 1)"] },
+      { grup: "Lantai 2", items: ["Anggrek (Lt 2)", "Cemara (Lt 2)", "Dahlia (Lt 2)", "Flamboyan (Lt 2)", "Edelwais (Lt 2)", "Geranium (Lt 2)"] },
+      { grup: "Khusus", items: ["CVCU/ICCU", "ICU", "IGD"] }
+    ];
+
+    const dpjpStats = {};
+
+    strukturRuangan.forEach(sec => {
+      if (sec.grup !== "Khusus") text += `*${sec.grup}*\n`;
+
+      sec.items.forEach(r => {
+        const matching = targetPasien.filter(p => p.ruang.toLowerCase() === r.toLowerCase());
+        const icon = r.includes("ICU") ? "🛑" : r.includes("CVCU") ? "🫀" : r.includes("IGD") ? "🚑" : "🏡";
+        const namaRuangBersih = r.replace(/ \(Lt \d\)/, '');
+
+        if (matching.length > 0) {
+          text += `*${namaRuangBersih} ${icon} (${matching.length})*\n`;
+          matching.forEach((p, idx) => {
+            const diagClean = p.diag ? p.diag.replace(/\n/g, ' + ') : '-';
+            const usiaStr = p.usia ? `${p.usia} Tahun` : '-';
+            const namaLengkap = formatNamaLengkap(p.gelar, p.nama);
+            text += `${idx + 1}. ${namaLengkap}/${usiaStr}/RM ${p.rm}/${p.dpjp}/${p.bed || '-'}/${diagClean}\n`;
+
+            const cleanDPJP = p.dpjp.replace(/\(konsul\)/ig, '').trim();
+            dpjpStats[cleanDPJP] = (dpjpStats[cleanDPJP] || 0) + 1;
+          });
+          text += `\n`;
+        } else {
+          text += `${namaRuangBersih} ${icon} (0)\n`;
+        }
+      });
+      text += `\n`;
+    });
+
+    text += `Keterangan:\n`;
+    for (const [dok, total] of Object.entries(dpjpStats)) {
+      text += `${dok} = ${total}\n`;
+    }
+    text += `Total pasien = ${targetPasien.length}\n`;
+
+    document.getElementById('outputArea').innerText = text.trim();
+  }
+
+  function generateFollowUp() {
+    const namaKoas = document.getElementById('koasNama').value.trim() || "[Nama Koas]";
+    const nimKoas = document.getElementById('koasNim').value.trim() || "[Stambuk]";
+    const filterDoc = document.getElementById('filterDPJPReport').value;
+    const targetPasien = filterDaftarPasien(filterDoc);
+
+    let dokIntro = filterDoc === "SEMUA" ? "pasien ta" : `pasien ta (${filterDoc})`;
+
+    let text = `Assalamualaikum warahmatullahi wabarakatuh dok. Mohon maaf mengganggu waktunya dok. Tabe dok mohon izin perkenalkan saya ${namaKoas} dengan stambuk ${nimKoas} MPPD Bagian Neurologi.\n`;
+    text += `Mohon izin melaporkan Follow Up ${dokIntro} dokter\n\n`;
+
+    const groups = {};
+    targetPasien.forEach(p => {
+      if (!groups[p.ruang]) groups[p.ruang] = [];
+      groups[p.ruang].push(p);
+    });
+
+    for (const ruang in groups) {
+      text += `${ruang.toUpperCase()} (${groups[ruang].length})\n\n`;
+
+      groups[ruang].forEach(p => {
+        const diagClean = p.diag ? p.diag.replace(/\n/g, ' + ') : '-';
+        const usiaStr = p.usia ? `${p.usia} Tahun` : '-';
+        const namaLengkap = formatNamaLengkap(p.gelar, p.nama);
+        
+        let rawatTag = '';
+        const hariRawat = hitungHariRawat(p.tglMasuk);
+        if (hariRawat) {
+          const tglMasukFmt = formatTanggalID(p.tglMasuk);
+          rawatTag = ` (Hari Rawatan Ke-${hariRawat} / Masuk: ${tglMasukFmt})`;
+        }
+
+        text += `*${namaLengkap}/${usiaStr}/RM ${p.rm}/${p.dpjp}/${p.bed || '-'}/${diagClean}${rawatTag}*\n\n`;
+
+        let sLines = '';
+        if (p.status === 'Lama' && p.sKelPagi) sLines += formatFieldMulti('Keluhan pagi ini', p.sKelPagi);
+        if (p.sKelMasuk) sLines += formatFieldMulti('Keluhan masuk', p.sKelMasuk);
+        if (p.sRKS) sLines += formatFieldMulti('Riwayat keluhan serupa', p.sRKS);
+        if (p.sRPD) sLines += formatFieldMulti('RPD', p.sRPD);
+        if (p.sRPO) sLines += formatFieldMulti('RPO', p.sRPO);
+        if (p.sAlergi) sLines += formatFieldMulti('Riwayat Alergi', p.sAlergi);
+        if (p.sLainnya) sLines += formatFieldMulti('Riwayat Lain-lain', p.sLainnya);
+
+        if (sLines) text += `S/\n${sLines}\n`;
+
+        let oLines = '';
+        let ttvLines = '';
+
+        if (p.oTDSis && p.oTDDia) {
+          const mapVal = hitungMAP(p.oTDSis, p.oTDDia);
+          const mapStr = mapVal ? ` (MAP ${mapVal} mmHg)` : '';
+          ttvLines += `TD : ${p.oTDSis}/${p.oTDDia} mmHg${mapStr}\n`;
+        }
+        if (p.oNadi) ttvLines += `N : ${p.oNadi} x/menit\n`;
+        if (p.oRR) ttvLines += `RR : ${p.oRR} x/menit\n`;
+        if (p.oSuhu) ttvLines += `S : ${p.oSuhu} °C\n`;
+        if (p.oSpO2) ttvLines += `SPO2 : ${p.oSpO2}% via ${p.oO2Via || 'RA'}\n`;
+
+        if (ttvLines) oLines += `*TTV*\n${ttvLines}`;
+
+        const nrsStr = interpretasiNRS(p.oNRS);
+        if (nrsStr) oLines += `NRS : ${nrsStr}\n`;
+
+        const gcsStr = hitungKesadaran(p.oGCSE, p.oGCSM, p.oGCSV);
+        oLines += `GCS : ${gcsStr}\n`;
+
+        if (p.oFKL) oLines += `FKL : ${p.oFKL}\n`;
+
+        const rmParts = [];
+        if (p.oRMKaku) rmParts.push(`Kaku kuduk ${p.oRMKaku}`);
+        if (p.oRMBrud) rmParts.push(`Brudzinski I/II ${p.oRMBrud}`);
+        if (p.oRMKernig) rmParts.push(`Kernig ${p.oRMKernig}`);
+        if (rmParts.length > 0) oLines += `RM : ${rmParts.join(', ')}\n`;
+
+        if (p.oPupil) oLines += `N. Cranialis : ${p.oPupil}\n`;
+
+        let motLines = '';
+        if (p.oMotPerg) motLines += formatFieldMulti('Pergerakan', p.oMotPerg);
+        if (p.oKekSup || p.oKekInf) {
+          motLines += `Kekuatan : Ekstremitas superior ${p.oKekSup || '-'} ; Ekstremitas inferior ${p.oKekInf || '-'}\n`;
+        }
+        if (p.oMotTonus) motLines += formatFieldMulti('Tonus', p.oMotTonus);
+        if (p.oRefFisio) motLines += formatFieldMulti('Refleks Fisiologis', p.oRefFisio);
+        if (p.oRefPato) motLines += formatFieldMulti('Refleks Patologis', p.oRefPato);
+        if (p.oSensorik) motLines += formatFieldMulti('Sensorik', p.oSensorik);
+        if (p.oOtonom) motLines += formatFieldMulti('Otonom', p.oOtonom);
+        if (p.oLainLain) motLines += formatFieldMulti('Lain-lain', p.oLainLain);
+
+        if (motLines) oLines += `*Motorik*\n${motLines}`;
+
+        if (oLines) text += `O/\n${oLines}\n`;
+
+        if (p.pPlan) text += `P/\n${p.pPlan}\n\n`;
+        if (p.pInstruksi) text += `I/\n${p.pInstruksi}\n\n`;
+      });
+
+      text += `------------------------\n\n`;
+    }
+
+    text += `Tabe dok, mohon arahan dan bimbinganta dokter 🙏🏻`;
+    document.getElementById('outputArea').innerText = text.trim();
+  }
+
+  function salinTeks() {
+    const isi = document.getElementById('outputArea').innerText;
+    navigator.clipboard.writeText(isi).then(() => {
+      alert("Teks laporan WhatsApp berhasil disalin!");
+    });
+  }
+
+  // Inisialisasi awal saat sistem dimuat
+  setTanggalOtomatis();
+  muatOtomatisKoas();
+  renderTable();
+  populateAllSuggestions();
+  updateFilterOptions();
+</script>
+</body>
+</html>
