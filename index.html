@@ -1747,7 +1747,6 @@
     dlAnchor.remove();
   }
 
-  function restoreDatabase(event) {
     function restoreDatabase(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1755,42 +1754,54 @@
     const reader = new FileReader();
     reader.onload = function(e) {
       try {
-        const data = JSON.parse(e.target.result);
-        
-        // Cek apakah format array langsung [...] atau objek { patients: [...] }
+        let content = e.target.result.trim();
+        let parsed = JSON.parse(content);
+
+        // Urai lapisan string kedua jika data terbungkus string ganda
+        if (typeof parsed === 'string') {
+          parsed = JSON.parse(parsed);
+        }
+
         let targetPatients = null;
-        if (Array.isArray(data)) {
-          targetPatients = data;
-        } else if (data && Array.isArray(data.patients)) {
-          targetPatients = data.patients;
-          if (data.memory) {
-            wordMemory = data.memory;
+
+        if (Array.isArray(parsed)) {
+          targetPatients = parsed;
+        } else if (parsed && Array.isArray(parsed.patients)) {
+          targetPatients = parsed.patients;
+          if (parsed.memory) {
+            wordMemory = parsed.memory;
             localStorage.setItem('neuro_word_memory', JSON.stringify(wordMemory));
           }
-          if (data.activeKoas) {
-            localStorage.setItem('neuro_active_koas', JSON.stringify(data.activeKoas));
+          if (parsed.activeKoas) {
+            localStorage.setItem('neuro_active_koas', JSON.stringify(parsed.activeKoas));
           }
-          if (data.koasProfiles) {
-            localStorage.setItem('neuro_koas_profiles', JSON.stringify(data.koasProfiles));
+          if (parsed.koasProfiles) {
+            localStorage.setItem('neuro_koas_profiles', JSON.stringify(parsed.koasProfiles));
           }
         }
 
         if (targetPatients && targetPatients.length > 0) {
           pasienList = targetPatients;
           localStorage.setItem(DB_KEY, JSON.stringify(pasienList));
-          
+
+          // Setel ulang filter tampilan tabel agar semua pasien langsung terlihat
+          const selRuang = document.getElementById('filterTabelRuang');
+          const selDPJP = document.getElementById('filterTabelDPJP');
+          if (selRuang) selRuang.value = 'SEMUA';
+          if (selDPJP) selDPJP.value = 'SEMUA';
+
+          updateFilterOptions();
           renderTable();
           populateAllSuggestions();
-          updateFilterOptions();
           muatOtomatisKoas();
-          alert(`Sukses memulihkan ${pasienList.length} data pasien!`);
+
+          alert(`Berhasil! ${pasienList.length} data pasien berhasil dimuat ke tabel.`);
         } else {
-          alert("File valid tetapi tidak ditemukan daftar pasien di dalamnya.");
+          alert("File terbaca, tetapi tidak ada daftar pasien di dalamnya.");
         }
       } catch (err) {
-        alert("Gagal membaca file backup! Pastikan format JSON/teks valid.");
+        alert("Gagal membaca file backup. Pastikan isi file tidak kosong atau rusak.");
       }
-      // Reset input agar bisa pilih file yang sama jika perlu
       event.target.value = '';
     };
     reader.readAsText(file);
