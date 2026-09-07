@@ -195,6 +195,8 @@
     button.backup-btn:hover { background: #0369a1; }
     button.restore-btn { background: #7c3aed; }
     button.restore-btn:hover { background: #6d28d9; }
+    button.allpdf-btn { background: #0891b2; }
+    button.allpdf-btn:hover { background: #0e7490; }
     button.pdf-btn { background: #475569; }
     button.pdf-btn:hover { background: #334155; }
     button.danger { background: #dc2626; }
@@ -292,6 +294,7 @@
         font-size: 11pt;
         line-height: 1.4;
       }
+      .page-break { page-break-after: always; break-after: page; }
     }
   </style>
 </head>
@@ -537,6 +540,17 @@
       </div>
     </div>
 
+    <div>
+      <div class="label-wrapper">
+        <label for="oTemuanLain">Pemeriksaan / Temuan Fisik Lain (Dasar & Tambahan)</label>
+        <div class="label-actions">
+          <select class="history-select" onchange="insertHistory('oTemuanLain', this.value)"><option value="">↺ Histori...</option></select>
+          <span class="info-btn" onclick="showInfo('temuanlain', event)">ⓘ</span>
+        </div>
+      </div>
+      <textarea id="oTemuanLain" rows="2" placeholder="Contoh: Cor/Pulmo: Ronki (+/+), Bising (-) ; Abdomen: supel, BU (+) kesan normal ; Ekstremitas: Edema pretibial (-/-)"></textarea>
+    </div>
+
     <div class="label-wrapper" style="margin-top:10px;">
       <label>Status Kesadaran Neurologi</label>
       <span class="info-btn" onclick="showInfo('gcs', event)">ⓘ</span>
@@ -760,7 +774,8 @@
   <div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; flex-wrap:wrap; gap:10px;">
       <h3 style="margin:0;">Daftar Pasien Aktif (<span id="totalBadge">0</span>)</h3>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <button class="allpdf-btn" onclick="cetakSemuaResumePDF()">📑 Cetak / Unduh Semua Resume (PDF)</button>
         <select id="filterTabelRuang" class="history-select" style="max-width:180px;" onchange="renderTable()">
           <option value="SEMUA">Semua Kamar/Ruang</option>
         </select>
@@ -956,6 +971,18 @@
         </div>
       `
     },
+    temuanlain: {
+      judul: "Pemeriksaan & Temuan Fisik Tambahan",
+      html: `
+        <div class="modal-section">
+          <b>Pemeriksaan Fisik Non-Neurologis Terkait:</b>
+          <br>• <b>Toraks/Paru:</b> Ronki/Wheezing (skrining pneumonia aspirasi pada disfagia), pola pernafasan Cheyne-Stokes / hiperventilasi sentral.
+          <br>• <b>Jantung:</b> Irama ireguler (fibrilasi atrium/kardioemboli), murmur karotis atau jantung.
+          <br>• <b>Abdomen:</b> Distensi, nyeri tekan, bising usus.
+          <br>• <b>Ekstremitas & Kulit:</b> Edema pretibial, tanda DVT (tanda Homan), ulkus dekubitus (regio sakrum/tumit) pada tirah baring lama.
+        </div>
+      `
+    },
     gcs: {
       judul: "Glasgow Coma Scale (GCS)",
       html: `
@@ -1098,7 +1125,7 @@
       }
     }
 
-    const textareas = ['pDiag', 'sKeluhanMasuk', 'sKeluhanPagi', 'sRKS', 'sRPD', 'sRPO', 'sAlergi', 'sLainnya', 'oMotPergerakan', 'oMotTonus', 'oSensorik', 'oRefFisio', 'oRefPato', 'oOtonom', 'oLainLain', 'pPlan', 'pInstruksi'];
+    const textareas = ['pDiag', 'sKeluhanMasuk', 'sKeluhanPagi', 'sRKS', 'sRPD', 'sRPO', 'sAlergi', 'sLainnya', 'oTemuanLain', 'oMotPergerakan', 'oMotTonus', 'oSensorik', 'oRefFisio', 'oRefPato', 'oOtonom', 'oLainLain', 'pPlan', 'pInstruksi'];
     
     textareas.forEach(id => {
       const ta = document.getElementById(id);
@@ -1315,6 +1342,7 @@
       oSpO2: document.getElementById('oSpO2').value.trim(),
       oO2Via: document.getElementById('oO2Via').value.trim(),
       oNRS: document.getElementById('oNRS').value.trim(),
+      oTemuanLain: document.getElementById('oTemuanLain').value.trim(),
       oGCSE: document.getElementById('oGCSE').value,
       oGCSM: document.getElementById('oGCSM').value,
       oGCSV: document.getElementById('oGCSV').value,
@@ -1357,6 +1385,7 @@
     saveToMemory('sAlergi', data.sAlergi);
     saveToMemory('sLainnya', data.sLainnya);
     saveToMemory('oO2Via', data.oO2Via);
+    saveToMemory('oTemuanLain', data.oTemuanLain);
     saveToMemory('oFKL', data.oFKL);
     saveToMemory('oPupil', data.oPupil);
     saveToMemory('oMotPergerakan', data.oMotPerg);
@@ -1488,6 +1517,7 @@
     document.getElementById('oSpO2').value = p.oSpO2 || '';
     document.getElementById('oO2Via').value = p.oO2Via || '';
     document.getElementById('oNRS').value = p.oNRS || '';
+    document.getElementById('oTemuanLain').value = p.oTemuanLain || p.oFisikLain || '';
     document.getElementById('oGCSE').value = p.oGCSE || '4';
     document.getElementById('oGCSM').value = p.oGCSM || '6';
     document.getElementById('oGCSV').value = p.oGCSV || '5';
@@ -1506,8 +1536,9 @@
     document.getElementById('oOtonom').value = p.oOtonom || '';
     document.getElementById('oLainLain').value = p.oLainLain || '';
 
-    document.getElementById('pPlan').value = p.pPlan || '';
-    document.getElementById('pInstruksi').value = p.pInstruksi || '';
+    // Toleransi nama field P/ dan I/ dari berbagai versi
+    document.getElementById('pPlan').value = p.pPlan || p.plan || p.planning || '';
+    document.getElementById('pInstruksi').value = p.pInstruksi || p.instruksi || p.terapi || '';
 
     window.scrollTo({ top: 130, behavior: 'smooth' });
   }
@@ -1563,6 +1594,7 @@
     document.getElementById('oSpO2').value = '';
     document.getElementById('oO2Via').value = '';
     document.getElementById('oNRS').value = '';
+    document.getElementById('oTemuanLain').value = '';
     document.getElementById('oFKL').value = '';
     document.getElementById('oPupil').value = '';
     document.getElementById('oRMKaku').value = '';
@@ -1640,20 +1672,17 @@
     return { anamnesis, fisik, penunjang };
   }
 
-  function cetakResumePDF(idx) {
-    const p = pasienList[idx];
-    const namaKoas = document.getElementById('koasNama').value.trim() || "Dokter Muda";
-    const nimKoas = document.getElementById('koasNim').value.trim() || "-";
-    const tgl = document.getElementById('tglLaporan').value.trim() || new Date().toLocaleDateString('id-ID');
+  function buatHTMLResumePasien(p, namaKoas, nimKoas, tgl) {
     const namaPasien = formatNamaLengkap(p.gelar, p.nama);
     const mapVal = hitungMAP(p.oTDSis, p.oTDDia);
     const gcsVal = hitungKesadaran(p.oGCSE, p.oGCSM, p.oGCSV);
     const hariRawat = hitungHariRawat(p.tglMasuk);
-
     const panduan = generateRekomendasiPPK(p.diag, p.oGCSE, p.oGCSM, p.oGCSV);
+    const temuanLain = p.oTemuanLain || p.oFisikLain || '';
+    const planText = p.pPlan || p.plan || p.planning || '-';
+    const instruksiText = p.pInstruksi || p.instruksi || p.terapi || '-';
 
-    const printArea = document.getElementById('printResumeArea');
-    printArea.innerHTML = `
+    return `
       <div style="text-align:center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 14px;">
         <h2 style="margin:0; font-size:16pt; text-transform:uppercase;">RESUME FOLLOW-UP HARIAN PASIEN NEUROLOGI</h2>
         <p style="margin:3px 0 0 0; font-size:10pt;">Fakultas Kedokteran Universitas Muslim Indonesia | ${tgl}</p>
@@ -1686,6 +1715,7 @@
       <h3 style="margin:4px 0; font-size:11.5pt; color:#0f2b48;">OBJECTIVE (O/)</h3>
       <p style="margin:2px 0;"><b>TTV:</b> TD: ${p.oTDSis || '-'}/${p.oTDDia || '-'} mmHg ${mapVal ? '(MAP '+mapVal+' mmHg)' : ''} | N: ${p.oNadi || '-'} x/m | RR: ${p.oRR || '-'} x/m | S: ${p.oSuhu || '-'} °C | SpO2: ${p.oSpO2 || '-'}% via ${p.oO2Via || 'RA'}</p>
       <p style="margin:2px 0;"><b>GCS:</b> ${gcsVal} | <b>NRS:</b> ${interpretasiNRS(p.oNRS) || '-'}</p>
+      ${temuanLain ? `<p style="margin:2px 0;"><b>Pemeriksaan/Temuan Lain:</b> ${temuanLain}</p>` : ''}
       <p style="margin:2px 0;"><b>N. Cranialis:</b> ${p.oPupil || '-'}</p>
       <p style="margin:2px 0;"><b>RM:</b> Kaku Kuduk ${p.oRMKaku || '-'}, Brudzinski ${p.oRMBrud || '-'}, Kernig ${p.oRMKernig || '-'}</p>
       <p style="margin:2px 0;"><b>Motorik:</b> Kekuatan Atas: ${p.oKekSup || '-'} | Bawah: ${p.oKekInf || '-'} | Tonus: ${p.oMotTonus || '-'}</p>
@@ -1695,8 +1725,8 @@
       <hr style="border:0; border-top:1px solid #94a3b8; margin:8px 0;">
 
       <h3 style="margin:4px 0; font-size:11.5pt; color:#0f2b48;">PLANNING (P/) & INSTRUKSI (I/)</h3>
-      <p style="margin:2px 0; white-space:pre-wrap;"><b>Planning:</b>\n${p.pPlan || '-'}</p>
-      <p style="margin:2px 0; white-space:pre-wrap;"><b>Instruksi:</b>\n${p.pInstruksi || '-'}</p>
+      <p style="margin:2px 0; white-space:pre-wrap;"><b>Planning:</b>\n${planText}</p>
+      <p style="margin:2px 0; white-space:pre-wrap;"><b>Instruksi:</b>\n${instruksiText}</p>
 
       <div style="margin-top:12px; padding:10px 12px; border:1px solid #0284c7; background-color:#f0f9ff; border-radius:6px; font-size:10pt;">
         <b style="color:#0369a1; font-size:10.5pt; display:block; margin-bottom:4px;">📋 REKOMENDASI KLINIS BERDASARKAN PPK NEUROLOGI PERDOSNI:</b>
@@ -1723,7 +1753,49 @@
         </div>
       </div>
     `;
+  }
 
+  function cetakResumePDF(idx) {
+    const p = pasienList[idx];
+    const namaKoas = document.getElementById('koasNama').value.trim() || "Dokter Muda";
+    const nimKoas = document.getElementById('koasNim').value.trim() || "-";
+    const tgl = document.getElementById('tglLaporan').value.trim() || new Date().toLocaleDateString('id-ID');
+
+    const printArea = document.getElementById('printResumeArea');
+    printArea.innerHTML = buatHTMLResumePasien(p, namaKoas, nimKoas, tgl);
+    window.print();
+  }
+
+  function cetakSemuaResumePDF() {
+    const filterRuang = document.getElementById('filterTabelRuang') ? document.getElementById('filterTabelRuang').value : 'SEMUA';
+    const filterDPJP = document.getElementById('filterTabelDPJP') ? document.getElementById('filterTabelDPJP').value : 'SEMUA';
+
+    const target = pasienList.filter(p => {
+      if (filterRuang !== 'SEMUA' && p.ruang !== filterRuang) return false;
+      if (filterDPJP !== 'SEMUA' && !p.dpjp.toLowerCase().includes(filterDPJP.toLowerCase())) return false;
+      return true;
+    });
+
+    if (target.length === 0) {
+      alert("Tidak ada pasien yang sesuai filter untuk dicetak!");
+      return;
+    }
+
+    const namaKoas = document.getElementById('koasNama').value.trim() || "Dokter Muda";
+    const nimKoas = document.getElementById('koasNim').value.trim() || "-";
+    const tgl = document.getElementById('tglLaporan').value.trim() || new Date().toLocaleDateString('id-ID');
+
+    const printArea = document.getElementById('printResumeArea');
+    let gabunganHTML = '';
+
+    target.forEach((p, idx) => {
+      gabunganHTML += buatHTMLResumePasien(p, namaKoas, nimKoas, tgl);
+      if (idx < target.length - 1) {
+        gabunganHTML += `<div class="page-break" style="margin-top:20px;"></div>`;
+      }
+    });
+
+    printArea.innerHTML = gabunganHTML;
     window.print();
   }
 
@@ -1747,10 +1819,9 @@
     dlAnchor.remove();
   }
 
-      function restoreDatabase(event) {
+  function restoreDatabase(event) {
     const file = event.target.files[0];
-    
-    // Fungsi pembantu untuk memproses teks mentah
+
     function prosesDataMentah(rawText) {
       if (!rawText || !rawText.trim()) {
         alert("Data kosong!");
@@ -1787,10 +1858,10 @@
           muatOtomatisKoas();
           alert(`BERHASIL! ${pasienList.length} data pasien berhasil dipulihkan.`);
         } else {
-          alert("Format JSON terbaca, tetapi daftar pasien tidak ditemukan.");
+          alert("Format JSON terbaca, namun tidak ditemukan daftar pasien.");
         }
       } catch (err) {
-        alert("Gagal membaca struktur JSON: " + err.message);
+        alert("Gagal membaca struktur data: " + err.message);
       }
     }
 
@@ -1800,14 +1871,12 @@
         prosesDataMentah(e.target.result);
       };
       reader.onerror = function() {
-        // Jika file diblokir sistem tablet, minta tempel manual
-        const manualInput = prompt("Sistem tablet memblokir file. Silakan buka file cadangan di aplikasi Catatan, salin isinya, lalu TEMPEL (PASTE) di sini:");
+        const manualInput = prompt("Sistem tablet memblokir pembacaan file. Silakan buka file cadangan di Catatan/Notes, salin isinya, lalu TEMPEL (PASTE) di sini:");
         if (manualInput) prosesDataMentah(manualInput);
       };
       reader.readAsText(file);
     } else {
-      // Jika batal memilih file
-      const manualInput = prompt("TEMPEL (PASTE) teks isi file backup di sini:");
+      const manualInput = prompt("TEMPEL (PASTE) teks isi file cadangan di sini:");
       if (manualInput) prosesDataMentah(manualInput);
     }
 
@@ -1935,6 +2004,9 @@
         const nrsStr = interpretasiNRS(p.oNRS);
         if (nrsStr) oLines += `NRS : ${nrsStr}\n`;
 
+        const temuanLain = p.oTemuanLain || p.oFisikLain;
+        if (temuanLain) oLines += formatFieldMulti('Pemeriksaan/Temuan Lain', temuanLain);
+
         const gcsStr = hitungKesadaran(p.oGCSE, p.oGCSM, p.oGCSV);
         oLines += `GCS : ${gcsStr}\n`;
 
@@ -1964,8 +2036,11 @@
 
         if (oLines) text += `O/\n${oLines}\n`;
 
-        if (p.pPlan) text += `P/\n${p.pPlan}\n\n`;
-        if (p.pInstruksi) text += `I/\n${p.pInstruksi}\n\n`;
+        const pPlanText = p.pPlan || p.plan || p.planning;
+        const pInstruksiText = p.pInstruksi || p.instruksi || p.terapi;
+
+        if (pPlanText) text += `P/\n${pPlanText}\n\n`;
+        if (pInstruksiText) text += `I/\n${pInstruksiText}\n\n`;
       });
 
       text += `------------------------\n\n`;
