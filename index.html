@@ -240,7 +240,6 @@
       font-weight: 600;
     }
 
-    /* Modal Dialog Panduan */
     .modal-backdrop {
       display: none;
       position: fixed;
@@ -276,7 +275,6 @@
     .modal-body { font-size: 13px; line-height: 1.6; color: #334155; }
     .modal-section { margin-bottom: 12px; background: #f8fafc; padding: 10px 12px; border-radius: 6px; border-left: 3px solid var(--primary-accent); }
 
-    /* Area Cetak Print PDF */
     #printResumeArea { display: none; }
     @media print {
       body * { visibility: hidden; }
@@ -300,7 +298,6 @@
 <body>
 <div class="container">
 
-  <!-- Header Khusus Neurologi -->
   <div class="neuro-header">
     <h1>⚡ SISTEM SLABERAN & FOLLOW-UP NEUROLOGI</h1>
     <p>Aplikasi pencatatan klinis harian MPPD/Koas Departemen Neurologi. Dilengkapi kalkulator klinis, penanggalan harian, memori kata, filter DPJP/Kamar, backup-restore database mandiri, serta integrasi rekomendasi PPK Neurologi pada cetak resume PDF.</p>
@@ -309,7 +306,6 @@
     </div>
   </div>
 
-  <!-- Identitas Koas & Tanggal Jaga -->
   <div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
       <h3 style="margin:0;">Data Jaga & Identitas Koas</h3>
@@ -341,11 +337,9 @@
     </div>
   </div>
 
-  <!-- Formulir Entri Pasien -->
   <div class="card">
     <h3>Input / Edit Pasien Rawat Inap</h3>
 
-    <!-- Bagian A: Data Diri -->
     <div class="section-title">A. Data Diri Pasien</div>
     <div class="grid-4">
       <div>
@@ -435,7 +429,6 @@
       </div>
     </div>
 
-    <!-- Bagian B: S/ -->
     <div class="section-title">B. Subjective (S/)</div>
     <div id="secKeluhanMasuk">
       <div class="label-wrapper">
@@ -493,7 +486,6 @@
       </div>
     </div>
 
-    <!-- Bagian C: O/ -->
     <div class="section-title">C. Objective (O/)</div>
     
     <div style="font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Tanda Vital (Cukup Angka Saja)</div>
@@ -741,7 +733,6 @@
       </div>
     </div>
 
-    <!-- Bagian D: P/ dan I/ -->
     <div class="section-title">D. Planning (P/) & Instruksi (I/)</div>
     <div class="grid-2">
       <div>
@@ -766,7 +757,6 @@
     </div>
   </div>
 
-  <!-- Tabel Pasien Aktif dengan Filter Ruangan, DPJP, & Manajemen Backup Data -->
   <div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; flex-wrap:wrap; gap:10px;">
       <h3 style="margin:0;">Daftar Pasien Aktif (<span id="totalBadge">0</span>)</h3>
@@ -795,18 +785,16 @@
       </table>
     </div>
 
-    <!-- Tombol Pencadangan Data & Pemulihan (Bebas Pindah Perangkat / Hosting) -->
     <div class="btn-group" style="justify-content: space-between; margin-top: 18px;">
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="backup-btn" onclick="backupDatabase()" title="Unduh file backup data pasien ke memori perangkat">📥 Backup Database (.json)</button>
         <button class="restore-btn" onclick="document.getElementById('inputRestoreFile').click()" title="Pulihkan data pasien dari file backup">📤 Restore Database</button>
-        <input type="file" id="inputRestoreFile" accept=".json" style="display:none;" onchange="restoreDatabase(event)">
+        <input type="file" id="inputRestoreFile" accept=".json,application/json,text/plain,*/*" style="display:none;" onchange="restoreDatabase(event)">
       </div>
       <button class="danger" onclick="hapusSemua()">Hapus Semua Data Pasien</button>
     </div>
   </div>
 
-  <!-- Hasil Generate WhatsApp dengan Filter DPJP -->
   <div class="card">
     <h3>Hasil Format Laporan WhatsApp Siap Salin</h3>
 
@@ -828,10 +816,8 @@
 
 </div>
 
-<!-- Lembar Cetak Print PDF dengan Panduan Rekomendasi PPK Otomatis -->
 <div id="printResumeArea"></div>
 
-<!-- Modal Dialog Panduan Klinis Pemeriksaan Neurologi -->
 <div class="modal-backdrop" id="modalPanduan" onclick="closeInfo(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -843,10 +829,8 @@
 </div>
 
 <script>
-  // Kunci Database Master Permanen
   const DB_KEY = 'neuro_db_master';
 
-  // Fungsi Migrasi Cerdas Multi-Versi
   function loadDataPasien() {
     const rawMaster = localStorage.getItem(DB_KEY);
     if (rawMaster) {
@@ -880,7 +864,6 @@
   let pasienList = loadDataPasien();
   let editIndex = -1;
 
-  // Tanggal Otomatis Hari Ini
   function setTanggalOtomatis(force = false) {
     const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -897,7 +880,6 @@
     }
   }
 
-  // Profil Koas
   function muatOtomatisKoas() {
     const profilTersimpan = JSON.parse(localStorage.getItem('neuro_active_koas')) || null;
     if (profilTersimpan) {
@@ -949,7 +931,6 @@
     }
   }
 
-  // Basis Pengetahuan Pedoman Klinis Neurologi
   const PANDUAN_NEURO = {
     td: {
       judul: "Tekanan Darah & Mean Arterial Pressure (MAP)",
@@ -1070,7 +1051,6 @@
     if (e.target.id === 'modalPanduan') hideModal();
   }
 
-  // Modul Memori Saran Cepat
   let wordMemory = {};
   try {
     wordMemory = JSON.parse(localStorage.getItem('neuro_word_memory')) || {};
@@ -1601,7 +1581,6 @@
     document.getElementById('pInstruksi').value = '';
   }
 
-  // Engine Rekomendasi Klinis PPK Neurologi PERDOSNI
   function generateRekomendasiPPK(diagText, e, m, v) {
     const d = (diagText || '').toLowerCase();
     const gcsScore = (v === 'X') ? 15 : (parseInt(e) + parseInt(m) + parseInt(v));
@@ -1661,7 +1640,6 @@
     return { anamnesis, fisik, penunjang };
   }
 
-  // Cetak Lembar Resume PDF Medis + Rekomendasi PPK
   function cetakResumePDF(idx) {
     const p = pasienList[idx];
     const namaKoas = document.getElementById('koasNama').value.trim() || "Dokter Muda";
@@ -1720,7 +1698,6 @@
       <p style="margin:2px 0; white-space:pre-wrap;"><b>Planning:</b>\n${p.pPlan || '-'}</p>
       <p style="margin:2px 0; white-space:pre-wrap;"><b>Instruksi:</b>\n${p.pInstruksi || '-'}</p>
 
-      <!-- KOTAK KHUSUS REKOMENDASI PANDUAN PRAKTIK KLINIS (PPK) -->
       <div style="margin-top:12px; padding:10px 12px; border:1px solid #0284c7; background-color:#f0f9ff; border-radius:6px; font-size:10pt;">
         <b style="color:#0369a1; font-size:10.5pt; display:block; margin-bottom:4px;">📋 REKOMENDASI KLINIS BERDASARKAN PPK NEUROLOGI PERDOSNI:</b>
         <div style="margin-bottom:6px;">
@@ -1750,7 +1727,6 @@
     window.print();
   }
 
-  // Backup Database ke File JSON
   function backupDatabase() {
     const backupObj = {
       version: 'master',
@@ -1771,7 +1747,6 @@
     dlAnchor.remove();
   }
 
-  // Restore Database dari File JSON
   function restoreDatabase(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1804,7 +1779,7 @@
           alert("Format file cadangan tidak sesuai!");
         }
       } catch (err) {
-        alert("Gagal membaca file backup JSON!");
+        alert("Gagal membaca file backup!");
       }
     };
     reader.readAsText(file);
@@ -1978,7 +1953,6 @@
     });
   }
 
-  // Inisialisasi awal saat sistem dimuat
   setTanggalOtomatis();
   muatOtomatisKoas();
   renderTable();
