@@ -1748,6 +1748,7 @@
   }
 
   function restoreDatabase(event) {
+    function restoreDatabase(event) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -1755,10 +1756,13 @@
     reader.onload = function(e) {
       try {
         const data = JSON.parse(e.target.result);
-        if (data.patients && Array.isArray(data.patients)) {
-          pasienList = data.patients;
-          localStorage.setItem(DB_KEY, JSON.stringify(pasienList));
-          
+        
+        // Cek apakah format array langsung [...] atau objek { patients: [...] }
+        let targetPatients = null;
+        if (Array.isArray(data)) {
+          targetPatients = data;
+        } else if (data && Array.isArray(data.patients)) {
+          targetPatients = data.patients;
           if (data.memory) {
             wordMemory = data.memory;
             localStorage.setItem('neuro_word_memory', JSON.stringify(wordMemory));
@@ -1769,18 +1773,25 @@
           if (data.koasProfiles) {
             localStorage.setItem('neuro_koas_profiles', JSON.stringify(data.koasProfiles));
           }
+        }
 
+        if (targetPatients && targetPatients.length > 0) {
+          pasienList = targetPatients;
+          localStorage.setItem(DB_KEY, JSON.stringify(pasienList));
+          
           renderTable();
           populateAllSuggestions();
           updateFilterOptions();
           muatOtomatisKoas();
           alert(`Sukses memulihkan ${pasienList.length} data pasien!`);
         } else {
-          alert("Format file cadangan tidak sesuai!");
+          alert("File valid tetapi tidak ditemukan daftar pasien di dalamnya.");
         }
       } catch (err) {
-        alert("Gagal membaca file backup!");
+        alert("Gagal membaca file backup! Pastikan format JSON/teks valid.");
       }
+      // Reset input agar bisa pilih file yang sama jika perlu
+      event.target.value = '';
     };
     reader.readAsText(file);
   }
