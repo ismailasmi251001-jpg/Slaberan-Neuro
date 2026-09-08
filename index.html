@@ -925,16 +925,6 @@
 
 <div id="printResumeArea"></div>
 
-<div class="modal-backdrop" id="modalPanduan" onclick="closeInfo(event)">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <h4 id="mJudul">Judul Pemeriksaan</h4>
-      <button class="modal-close" onclick="hideModal()">&times;</button>
-    </div>
-    <div class="modal-body" id="mKonten"></div>
-  </div>
-</div>
-
 <script>
   const DB_KEY = 'neuro_db_master';
 
@@ -1190,618 +1180,29 @@
     }
   }
 
-  const PANDUAN_NEURO = {
-    td: {
-      judul: "Tekanan Darah & Mean Arterial Pressure (MAP)",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • Pasien istirahat baring minimal 5 menit sebelum pengukuran.<br>
-          • Gunakan manset sesuai lingkar lengan atas setinggi jantung.<br>
-          • Pompa tensimeter 20-30 mmHg di atas hilangnya pulsasi a. radialis, turunkan perlahan (2-3 mmHg/detik).<br>
-          • Catat Korotkoff I (sistol) dan Korotkoff V (diastol). Hitung MAP = [(2 × Diastol) + Sistol] / 3.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">TD : 160/90 mmHg (MAP 113 mmHg)</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis Neurologi:</div>
-          • <b>Stroke Iskemik Akut (non-trombolisis):</b> TD diizinkan permisif hingga &lt; 220/120 mmHg (MAP &lt; 130) untuk menjaga perfusi daerah penumbra.<br>
-          • <b>Stroke Iskemik rtPA:</b> Target &lt; 185/110 mmHg.<br>
-          • <b>Stroke Hemoragik (ICH):</b> Target sistolik bertahap 130 - 140 mmHg.<br>
-          • <b>Cushing Triad (TIK Meningkat):</b> Hipertensi progresif disertai bradikardia dan nafas ireguler.
-        </div>
-      `
-    },
-    nrs: {
-      judul: "Numeric Rating Scale (NRS)",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • Tanyakan langsung kepada pasien: "Jika nilai 0 adalah tidak ada nyeri sama sekali dan 10 adalah nyeri paling hebat yang pernah Anda rasakan, di angka berapa nyeri Anda saat ini?"<br>
-          • Pada pasien afasia/penurunan kesadaran ringan, gunakan skala visual wajah (Wong-Baker FACES).
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">NRS : 6 (Nyeri Sedang) / NRS : 0 (Tidak Nyeri)</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • <b>0:</b> Bebas Nyeri.<br>
-          • <b>1 - 3:</b> Nyeri Ringan (analgetik paracetamol/NSAID oral).<br>
-          • <b>4 - 6:</b> Nyeri Sedang (mengganggu konsentrasi/tidur, pertimbangkan NSAID injeksi / tramadol / adjuvan neuropatik).<br>
-          • <b>7 - 10:</b> Nyeri Berat (nyeri kolik/thunderclap SAH/radikulopati akut, evaluasi opioid lemah/kuat).
-        </div>
-      `
-    },
-    temuanlain: {
-      judul: "Pemeriksaan / Temuan Fisik Tambahan",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • <b>Auskultasi Paru:</b> Dengarkan suara napas di seluruh lapang dada anterior-posterior (skrining ronkhi basah aspirasi).<br>
-          • <b>Auskultasi Jantung:</b> Dengarkan BJ I/II dan irama (apakah teratur atau ireguler total menandakan Atrial Fibrilasi).<br>
-          • <b>Inspeksi Kulit & Ekstremitas:</b> Periksa pitting edema tungkai bawah, palpasi suhu akral, dan periksa sakrum/tumit untuk luka baring.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">Pemeriksaan/Temuan Lain : Cor BJ I/II murni reg ; Pulmo vesikuler ronki basah (+/+) basal dekstra ; Ekstremitas edema pretibial (-/-), ulkus dekubitus (-/-)</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Ronkhi basah halus/kasar pada pasien disfagia menandakan <b>Pneumonia Aspirasi</b>.<br>
-          • Irama ireguler mengindikasikan <b>Atrial Fibrilasi</b> sebagai etiologi kardioemboli otak.
-        </div>
-      `
-    },
-    gcs: {
-      judul: "Glasgow Coma Scale (GCS) & Kesadaran Kualitatif",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • <b>Eye (E 1-4):</b> 4=Buka spontan; 3=Terhadap perintah suara; 2=Terhadap rangsang nyeri; 1=Tidak ada respon.<br>
-          • <b>Motorik (M 1-6):</b> 6=Menurut perintah; 5=Melokalisir nyeri; 4=Menghindar nyeri; 3=Fleksi abnormal (dekortikasi); 2=Ekstensi abnormal (deserebrasi); 1=Tidak ada respon.<br>
-          • <b>Verbal (V 1-5/X):</b> 5=Orientasi baik; 4=Bingung; 3=Kata-kata tidak tepat; 2=Mengerang; 1=Tidak bersuara; X=Terintubasi/Afasia.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">GCS : E4M6V5 (15 - Compos Mentis)  atau  GCS : E3M5Vx (Afasia Motorik)</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • <b>14 - 15:</b> Compos Mentis | <b>12 - 13:</b> Apatis | <b>10 - 11:</b> Somnolen.<br>
-          • <b>7 - 9:</b> Sopor/Stupor | <b>≤ 8:</b> Koma berat (Indikasi proteksi jalan napas / intubasi ETT).
-        </div>
-      `
-    },
-    fkl: {
-      judul: "Fungsi Kortikal Luhur (FKL)",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • <b>Orientasi:</b> Tanyakan hari, tanggal, tempat, dan keluarga.<br>
-          • <b>Bahasa:</b> Perhatikan kelancaran bicara (fluent vs non-fluent).<br>
-          • <b>Komprehensi:</b> Perintahkan 2 tahap sederhana.<br>
-          • <b>Penamaan & Repetisi:</b> Minta menamai pulpen dan mengulang kalimat.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">FKL : Normal / Afasia motorik (Broca) / Afasia sensorik (Wernicke) / Disartria</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Bicara tidak lancar tapi paham = <b>Afasia Motorik (Broca)</b>.<br>
-          • Bicara lancar tanpa makna & tidak paham = <b>Afasia Sensorik (Wernicke)</b>.
-        </div>
-      `
-    },
-    ncranialis: {
-      judul: "Pemeriksaan Nervus Cranialis (N. I - N. XII)",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • <b>Pupil (N.II/III):</b> Ukuran isokor (mm), RCL & RCO.<br>
-          • <b>Okulomotor (N.III, IV, VI):</b> Gerak 6 arah kardinal, ptosis, nistagmus.<br>
-          • <b>N. VII:</b> Kerut dahi, tutup mata kuat, senyum meringis.<br>
-          • <b>N. IX, X:</b> Simetri arkus faring dan posisi uvula saat "Aahh".<br>
-          • <b>N. XII:</b> Julurkan lidah lurus, amati deviasi ke sisi paresis.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">N. Cranialis : Pupil isokor 3mm/3mm, RCL (+/+), RCO (+/+) ; Parese N.VII dextra UMN ; N.XII deviasi dextra</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Parese N.VII UMN: Kerutan dahi simetris, sudut mulut tertinggal.<br>
-          • Parese N.VII LMN: Kerutan dahi hilang ipsilateral, mata tidak bisa menutup.<br>
-          • Pupil Anisokor Midriasis Unilateral: Red flag herniasi unkus menekan N.III.
-        </div>
-      `
-    },
-    kakukuduk: {
-      judul: "Rangsang Meningeal: Kaku Kuduk",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • Pasien baring telentang tanpa bantal, pastikan tidak ada cedera leher.<br>
-          • Satu tangan di bawah oksiput, satu di sternum.<br>
-          • Fleksikan leher perlahan ke arah dagu menyentuh sternum.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">RM : Kaku kuduk (+)  atau  RM : Kaku kuduk (-)</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Positif bila ada tahanan kaku sebelum dagu mencapai dada $\rightarrow$ iritasi meningen (<b>Meningitis / SAH</b>).
-        </div>
-      `
-    },
-    brudzinski: {
-      judul: "Rangsang Meningeal: Brudzinski I & II",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • <b>Brudzinski I:</b> Fleksi kepala pasif ke dada $\rightarrow$ amati fleksi lutut/panggul involunter.<br>
-          • <b>Brudzinski II:</b> Fleksikan satu tungkai maksimal pada panggul dan lutut $\rightarrow$ amati fleksi reflektorik tungkai seberang.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">Brudzinski I/II : (+/+)  atau  (-/-)</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Positif menandakan iritasi radiks lumbosakral akibat inflamasi meningen difus.
-        </div>
-      `
-    },
-    kernig: {
-      judul: "Rangsang Meningeal: Kernig Sign",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • Pasien telentang. Fleksikan panggul 90° dan lutut 90°.<br>
-          • Ekstensikan sendi lutut ke atas dan ukur sudut maksimal yang dicapai.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">Kernig Sign : (+/+) sudut &lt; 135°  atau  (-/-) &gt; 135° bebas nyeri</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Tahanan/nyeri sebelum 135° menandakan spasme hamstring karena iritasi meningeal.
-        </div>
-      `
-    },
-    pergerakan: {
-      judul: "Pemeriksaan Pergerakan Motorik",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • Amati gerakan aktif volunter pada keempat ekstremitas.<br>
-          • Amati ada tidaknya gerakan involunter: tremor, korea, atetosis, fasikulasi.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">Pergerakan : Normal sisi kiri, menurun sisi kanan ; Gerakan involunter (-)</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Penurunan gerak sesisi menandakan <b>Hemiparesis</b> (lesi piramidal kontralateral).
-        </div>
-      `
-    },
-    tonus: {
-      judul: "Pemeriksaan Tonus Otot",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • Lemaskan otot pasien sepenuhnya.<br>
-          • Gerakkan sendi siku, lutut, dan pergelangan tangan secara pasif dengan ritme cepat dan lambat.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">Tonus : Normotonus  /  Spastik dekstra  /  Flaccid</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • <b>Spastisitas:</b> Tahanan clasp-knife khas lesi <b>UMN</b>.<br>
-          • <b>Rigiditas:</b> Tahanan cogwheel/pipa timah khas <b>Parkinson</b>.<br>
-          • <b>Flaksid:</b> Hipotoni layuh khas lesi <b>LMN (GBS)</b> atau syok spinal akut.
-        </div>
-      `
-    },
-    kekuatan: {
-      judul: "Skala Kekuatan Otot (MRC 0 - 5)",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • Nilai 5: Lawan tahanan penuh.<br>
-          • Nilai 4: Lawan gravitasi dan tahanan sedang.<br>
-          • Nilai 3: Hanya mampu lawan gravitasi (jatuh jika ditahan).<br>
-          • Nilai 2: Geser di tempat tidur (tidak mampu lawan gravitasi).<br>
-          • Nilai 1: Kontraksi otot terlihat/teraba saja.<br>
-          • Nilai 0: Paralisis total tanpa kontraksi.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">Kekuatan : Ekstremitas superior 5/5 D 5/5 S ; Ekstremitas inferior 3/3 D 5/5 S</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Hemiparesis (lesi hemisfer serebri kontralateral).<br>
-          • Paraparese (lesi torakolumbal medula spinalis).
-        </div>
-      `
-    },
-    reffisio: {
-      judul: "Pemeriksaan Refleks Fisiologis",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • Ketuk hammer santai dari pergelangan tangan.<br>
-          • BPR (C5-C6), TPR (C7-C8), KPR (L2-L4), APR (S1-S2).
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">Refleks Fisiologis : BPR +2/+2, TPR +2/+2, KPR +2/+2, APR +2/+2 (Normal)</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • +2: Normal.<br>
-          • 0: Arefleksia (khas <b>LMN / GBS</b>).<br>
-          • +3/+4: Hiperrefleksia/klonus (khas lesi <b>UMN</b>).
-        </div>
-      `
-    },
-    refpato: {
-      judul: "Pemeriksaan Refleks Patologis",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • <b>Babinski:</b> Gores telapak kaki sisi lateral dari tumit melengkung ke jempol.<br>
-          • <b>Chaddock:</b> Gores kulit di bawah malleolus lateral ke depan.<br>
-          • <b>Hoffman-Tromner:</b> Petik kuku jari tengah ke bawah.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">Refleks Patologis : Babinski (+/-), Chaddock (+/-), Hoffman-Tromner (-/-)</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Babinski positif: Dorsofleksi jempol kaki disertai fanning 4 jari $\rightarrow$ <b>Lesi UMN / Traktus Kortikospinalis</b>.
-        </div>
-      `
-    },
-    sensorik: {
-      judul: "Pemeriksaan Sistem Sensorik",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • Mata pasien tertutup.<br>
-          • Raba kapas / jarum tumpul simetris sesuai dermatom.<br>
-          • Gerakkan jempol ke atas/bawah untuk rasa posisi sendi.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">Sensorik : Hipoestesi setinggi Th10 ke bawah / Hipoestesi hemisfer dekstra</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Sensory level tegas menandakan <b>Mielopati / Transeksi Medula Spinalis</b>.
-        </div>
-      `
-    },
-    otonom: {
-      judul: "Pemeriksaan Fungsi Otonom",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • Evaluasi retensi/inkontinensia urin dan defekasi.<br>
-          • Palpasi distensi vesika urinaria di regio suprapubik.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">Otonom : BAB normal, BAK via dower catheter produksi 1200cc/24j</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Retensi urin mendadak + saddle anesthesia adalah <b>Red Flag Sindrom Kauda Ekuina</b>.
-        </div>
-      `
-    },
-    provokasi: {
-      judul: "Tes Provokasi Radikulopati Saraf",
-      html: `
-        <div class="modal-card">
-          <div class="modal-card-title">📋 1. Langkah-Langkah Pemeriksaan:</div>
-          • <b>Laseque (SLR):</b> Angkat tungkai lurus hingga timbul nyeri menjalar.<br>
-          • <b>Patrick (FABER):</b> Tumit di atas lutut seberang, tekan lutut ke kasur.<br>
-          • <b>Kontra-Patrick:</b> Adduksi dan endorotasi panggul.
-        </div>
-        <div class="modal-card highlight">
-          <div class="modal-card-title">✍️ 2. Cara Penulisan Rekam Medis:</div>
-          <span class="modal-code-snippet">Tes Provokasi : Laseque (+ &lt; 60° dekstra / -), Patrick (-/-), Kontra-Patrick (-/-)</span>
-        </div>
-        <div class="modal-card warn">
-          <div class="modal-card-title">🔍 3. Interpretasi Klinis:</div>
-          • Laseque positif (&lt; 70°): Iritasi radiks lumbosakral (<b>HNP</b>).<br>
-          • Patrick positif: Kelainan <b>Sendi Panggul (Hip Joint)</b>.<br>
-          • Kontra-Patrick positif: Kelainan <b>Sendi Sakroiliaka</b>.
-        </div>
-      `
-    }
-  };
-
-  function showInfo(key, e) {
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-    const data = PANDUAN_NEURO[key];
-    if (!data) return;
-    document.getElementById('mJudul').innerText = data.judul;
-    document.getElementById('mKonten').innerHTML = data.html;
-    document.getElementById('modalPanduan').style.display = 'flex';
-  }
-
-  function hideModal() {
-    document.getElementById('modalPanduan').style.display = 'none';
-  }
-
-  function closeInfo(e) {
-    if (e.target.id === 'modalPanduan') hideModal();
-  }
-
-  let wordMemory = {};
-  try {
-    wordMemory = JSON.parse(localStorage.getItem('neuro_word_memory')) || {};
-  } catch (e) {
-    wordMemory = {};
-  }
-
-  function saveToMemory(fieldId, value) {
-    if (!value || !value.trim()) return;
-    const cleanVal = value.trim();
-    if (!wordMemory[fieldId]) wordMemory[fieldId] = [];
-    if (!wordMemory[fieldId].includes(cleanVal)) {
-      wordMemory[fieldId].unshift(cleanVal);
-      if (wordMemory[fieldId].length > 30) wordMemory[fieldId].pop();
-      try {
-        localStorage.setItem('neuro_word_memory', JSON.stringify(wordMemory));
-      } catch (e) {}
-    }
-  }
-
-  function populateAllSuggestions() {
-    const datalistMap = {
-      'koasNama': 'list_koasNama',
-      'koasNim': 'list_koasNim',
-      'pNama': 'list_pNama',
-      'pRM': 'list_pRM',
-      'pBed': 'list_pBed',
-      'pDPJPLainnya': 'list_pDPJPLainnya',
-      'oO2Via': 'list_oO2Via',
-      'oFKL': 'list_oFKL',
-      'oPupil': 'list_oPupil',
-      'oKekuatanSup': 'list_oKekuatanSup',
-      'oKekuatanInf': 'list_oKekuatanInf'
-    };
-
-    for (const [fieldId, listId] of Object.entries(datalistMap)) {
-      const dl = document.getElementById(listId);
-      if (dl && wordMemory[fieldId]) {
-        dl.innerHTML = '';
-        wordMemory[fieldId].forEach(item => {
-          const opt = document.createElement('option');
-          opt.value = item;
-          dl.appendChild(opt);
-        });
-      }
-    }
-
-    const textareas = ['pDiag', 'sKeluhanMasuk', 'sKeluhanPagi', 'sRKS', 'sRPD', 'sRPO', 'sAlergi', 'sLainnya', 'oTemuanLain', 'oMotPergerakan', 'oMotTonus', 'oSensorik', 'oRefFisio', 'oRefPato', 'oOtonom', 'oLainLain', 'pPlan', 'pInstruksi'];
-    
-    textareas.forEach(id => {
-      const ta = document.getElementById(id);
-      if (!ta) return;
-      const parent = ta.previousElementSibling;
-      if (!parent) return;
-      const sel = parent.querySelector('.history-select');
-      if (sel && wordMemory[id]) {
-        sel.innerHTML = '<option value="">↺ Histori...</option>';
-        wordMemory[id].forEach(txt => {
-          const opt = document.createElement('option');
-          opt.value = txt;
-          opt.innerText = txt.length > 28 ? txt.substring(0, 25) + '...' : txt;
-          sel.appendChild(opt);
-        });
-      }
-    });
-  }
-
-  function insertHistory(targetId, val) {
-    if (!val) return;
-    const el = document.getElementById(targetId);
-    if (!el) return;
-    if (el.value.trim() === '') {
-      el.value = val;
-    } else {
-      el.value = el.value.trim() + '\n' + val;
-    }
-    const parent = el.previousElementSibling;
-    if (parent) {
-      const sel = parent.querySelector('.history-select');
-      if (sel) sel.value = '';
-    }
-    el.focus();
-    updateBedsideGuidance();
-  }
-
-  function updateFilterOptions() {
-    const filterSelect = document.getElementById('filterDPJPReport');
-    const filterTableDPJP = document.getElementById('filterTabelDPJP');
-    const filterTableRuang = document.getElementById('filterTabelRuang');
-
-    const listDPJP = [];
-    const listRuang = [];
-
-    pasienList.forEach(p => {
-      const cleanDoc = p.dpjp.replace(/\(konsul\)/ig, '').trim();
-      if (cleanDoc && !listDPJP.includes(cleanDoc)) listDPJP.push(cleanDoc);
-      if (p.ruang && !listRuang.includes(p.ruang)) listRuang.push(p.ruang);
-    });
-
-    if (filterSelect) {
-      const curVal = filterSelect.value;
-      filterSelect.innerHTML = '<option value="SEMUA">-- Semua Pasien Aktif (Semua DPJP) --</option>';
-      listDPJP.forEach(doc => {
-        const opt = document.createElement('option');
-        opt.value = doc;
-        opt.innerText = `Khusus Pasien ${doc}`;
-        filterSelect.appendChild(opt);
-      });
-      if (listDPJP.includes(curVal)) filterSelect.value = curVal;
-    }
-
-    if (filterTableDPJP) {
-      const curDPJP = filterTableDPJP.value;
-      filterTableDPJP.innerHTML = '<option value="SEMUA">Semua DPJP</option>';
-      listDPJP.forEach(doc => {
-        const opt = document.createElement('option');
-        opt.value = doc;
-        opt.innerText = doc;
-        filterTableDPJP.appendChild(opt);
-      });
-      if (listDPJP.includes(curDPJP)) filterTableDPJP.value = curDPJP;
-    }
-
-    if (filterTableRuang) {
-      const curRuang = filterTableRuang.value;
-      filterTableRuang.innerHTML = '<option value="SEMUA">Semua Kamar/Ruang</option>';
-      listRuang.forEach(rng => {
-        const opt = document.createElement('option');
-        opt.value = rng;
-        opt.innerText = rng;
-        filterTableRuang.appendChild(opt);
-      });
-      if (listRuang.includes(curRuang)) filterTableRuang.value = curRuang;
-    }
-  }
-
-  function formatNamaLengkap(gelar, nama) {
-    if (!gelar || !gelar.trim()) return nama;
-    return `${gelar} ${nama}`;
-  }
-
-  function toggleCustomDPJP() {
-    const dpjpSelect = document.getElementById('pDPJP').value;
-    const dpjpCustom = document.getElementById('pDPJPLainnya');
-    if (dpjpSelect === 'Lainnya') {
-      dpjpCustom.style.display = 'block';
-      dpjpCustom.focus();
-    } else {
-      dpjpCustom.style.display = 'none';
-      dpjpCustom.value = '';
-    }
-  }
-
-  function toggleStatusPasien() {
-    const status = document.getElementById('pStatus').value;
-    const secKelPagi = document.getElementById('secKeluhanPagi');
-    const secKelMasuk = document.getElementById('secKeluhanMasuk');
-
-    if (status === 'Baru') {
-      secKelMasuk.style.display = 'block';
-      secKelPagi.style.display = 'none';
-    } else {
-      secKelMasuk.style.display = 'block';
-      secKelPagi.style.display = 'block';
-    }
-  }
-
-  function hitungHariRawat(tglMasukStr) {
-    if (!tglMasukStr) return null;
-    const tglMasuk = new Date(tglMasukStr + 'T00:00:00');
-    if (isNaN(tglMasuk.getTime())) return null;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const diffTime = today.getTime() - tglMasuk.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const hariKe = diffDays + 1;
-    return hariKe > 0 ? hariKe : 1;
-  }
-
-  function formatTanggalID(tglMasukStr) {
-    if (!tglMasukStr) return '';
-    const parts = tglMasukStr.split('-');
-    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    return tglMasukStr;
-  }
-
-  function hitungMAP(sis, dia) {
-    if (!sis || !dia) return null;
-    const s = parseFloat(sis);
-    const d = parseFloat(dia);
-    if (isNaN(s) || isNaN(d)) return null;
-    return Math.round(((2 * d) + s) / 3);
-  }
-
-  function hitungKesadaran(e, m, v) {
-    if (v === 'X') return `E${e}M${m}Vx`;
-    const total = parseInt(e) + parseInt(m) + parseInt(v);
-    let label = 'Compos Mentis';
-    if (total <= 3) label = 'Coma';
-    else if (total <= 6) label = 'Sopor';
-    else if (total <= 9) label = 'Somnolen';
-    else if (total <= 13) label = 'Apatis';
-    else label = 'Compos Mentis';
-
-    return `E${e}M${m}V${v} (${total} - ${label})`;
-  }
-
-  function interpretasiNRS(nrs) {
-    if (nrs === '' || nrs === null) return '';
-    const val = parseInt(nrs);
-    if (isNaN(val)) return '';
-    if (val === 0) return '0 (Tidak Nyeri)';
-    if (val <= 3) return `${val} (Nyeri Ringan)`;
-    if (val <= 6) return `${val} (Nyeri Sedang)`;
-    return `${val} (Nyeri Berat)`;
-  }
-
-  function getSelectedDPJP() {
-    const val = document.getElementById('pDPJP').value;
-    if (val === 'Lainnya') {
-      return document.getElementById('pDPJPLainnya').value.trim() || 'dr. Sp.N';
-    }
-    return val;
-  }
-
-  function formatFieldMulti(prefix, val) {
-    if (!val || !val.trim()) return '';
-    if (val.includes('\n')) {
-      return `${prefix} :\n${val}\n`;
-    }
-    return `${prefix} : ${val}\n`;
-  }
-
   function simpanPasien() {
     const dpjpFinal = getSelectedDPJP();
     const now = new Date();
     const waktuTersimpan = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ', ' + 
                            now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA';
 
+    const pNamaEl = document.getElementById('pNama');
+    const pRMEl = document.getElementById('pRM');
+    const nama = pNamaEl ? pNamaEl.value.trim() : '';
+    const rm = pRMEl ? pRMEl.value.trim() : '';
+
+    if (!nama || !rm) {
+      alert("Nama Pasien dan No. RM wajib diisi!");
+      return;
+    }
+
     const data = {
       status: document.getElementById('pStatus').value,
       tglMasuk: document.getElementById('pTglMasuk').value,
       gelar: document.getElementById('pGelar').value,
-      nama: document.getElementById('pNama').value.trim(),
+      nama: nama,
       usia: document.getElementById('pUsia').value.trim(),
-      rm: document.getElementById('pRM').value.trim(),
+      rm: rm,
       ruang: document.getElementById('pRuang').value,
       bed: document.getElementById('pBed').value.trim(),
       dpjp: dpjpFinal,
@@ -1835,8 +1236,8 @@
       oMotPerg: document.getElementById('oMotPergerakan').value.trim(),
       oMotTonus: document.getElementById('oMotTonus').value.trim(),
       oSensorik: document.getElementById('oSensorik').value.trim(),
-      oKekSup: document.getElementById('oKekuatanSup').value.trim(),
-      oKekInf: document.getElementById('oKekuatanInf').value.trim(),
+      oKekSup: document.getElementById('oKekSup').value.trim(),
+      oKekInf: document.getElementById('oKekInf').value.trim(),
       oRefFisio: document.getElementById('oRefFisio').value.trim(),
       oRefPato: document.getElementById('oRefPato').value.trim(),
       oOtonom: document.getElementById('oOtonom').value.trim(),
@@ -1847,11 +1248,6 @@
       updatedAt: waktuTersimpan,
       riwayatFollowUp: []
     };
-
-    if (!data.nama || !data.rm) {
-      alert("Nama Pasien dan No. RM wajib diisi!");
-      return;
-    }
 
     saveToMemory('koasNama', document.getElementById('koasNama').value);
     saveToMemory('koasNim', document.getElementById('koasNim').value);
@@ -1923,6 +1319,7 @@
 
   function renderTable() {
     const tbody = document.querySelector('#tabelPasien tbody');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     const filterStatus = document.getElementById('filterTabelStatus') ? document.getElementById('filterTabelStatus').value : 'SEMUA';
@@ -1980,7 +1377,8 @@
       tbody.appendChild(tr);
     });
 
-    document.getElementById('totalBadge').innerText = displayedCount;
+    const totalBadge = document.getElementById('totalBadge');
+    if (totalBadge) totalBadge.innerText = displayedCount;
   }
 
   function editPasien(idx) {
@@ -2674,6 +2072,7 @@
     });
   }
 
+  // Inisialisasi awal saat sistem dijalankan
   setTanggalOtomatis();
   muatOtomatisKoas();
   renderTable();
