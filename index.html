@@ -359,7 +359,7 @@
     </div>
   </div>
 
-  <!-- Data Jaga & Identitas Koas (Diperbarui dengan Section Rotasi RS) -->
+  <!-- Data Jaga, Rotasi & Identitas Koas -->
   <div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
       <h3 style="margin:0;">Data Jaga, Rotasi & Identitas Koas</h3>
@@ -445,7 +445,6 @@
         <datalist id="list_pRM"></datalist>
       </div>
       <div>
-        <!-- Ruangan dengan opsi input manual -->
         <div class="label-wrapper"><label for="pRuang">Ruangan / Lokasi</label></div>
         <select id="pRuang" onchange="toggleCustomRuang()">
           <option value="Cemara (Lt 1)">Cemara (Lt 1)</option>
@@ -553,8 +552,26 @@
       <b>💡 Panduan Klinis & Rekomendasi Pemeriksaan Bedside (PPK):</b>
       <div id="txtBedsideGuidance">Ketik assessment atau keluhan untuk memunculkan panduan...</div>
     </div>
+
+    <!-- Section Keadaan Umum (KU) -->
+    <div>
+      <div class="label-wrapper">
+        <label for="oKU">Keadaan Umum (KU)</label>
+        <div class="label-actions">
+          <select class="history-select" onchange="insertHistory('oKU', this.value)"><option value="">↺ Histori...</option></select>
+        </div>
+      </div>
+      <input type="text" id="oKU" list="list_oKU" placeholder="Contoh: Tampak sakit sedang / Tampak sakit berat / Lemah">
+      <datalist id="list_oKU">
+        <option value="Tampak sakit ringan">
+        <option value="Tampak sakit sedang">
+        <option value="Tampak sakit berat">
+        <option value="Lemah">
+        <option value="Baik">
+      </datalist>
+    </div>
     
-    <div style="font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Tanda Vital (Cukup Angka Saja)</div>
+    <div style="font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; margin-top:8px;">Tanda Vital (Cukup Angka Saja)</div>
     <div class="grid-4">
       <div>
         <div class="label-wrapper">
@@ -810,7 +827,7 @@
       </div>
     </div>
 
-    <!-- Tambahan Form Pemeriksaan Penunjang pada Section O/ -->
+    <!-- Form Pemeriksaan Penunjang pada Section O/ -->
     <div style="margin-top:10px;">
       <div class="label-wrapper">
         <label for="oPenunjang">Hasil Pemeriksaan Penunjang (Laboratorium / Radiologi / Lainnya)</label>
@@ -821,7 +838,7 @@
       <textarea id="oPenunjang" rows="3" placeholder="Contoh:&#10;- CT-Scan Kepala: Infark cerebri subakut lobus temporoparietal sinistra&#10;- Lab Darah: GDS 145, Hb 13.2, Leukosit 8.400, Kolesterol Total 240"></textarea>
     </div>
 
-    <!-- Section Assessment (A/) dipindahkan setelah O/ -->
+    <!-- Section Assessment (A/) -->
     <div class="section-title">D. Assessment (A/)</div>
     <div>
       <div class="label-wrapper">
@@ -860,15 +877,19 @@
       <h3 style="margin:0;">Daftar Pasien Terdata (<span id="totalBadge">0</span>)</h3>
       <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
         <button class="allpdf-btn" onclick="cetakSemuaResumePDF()">📑 Cetak Semua Resume (PDF)</button>
-        <select id="filterTabelStatus" class="history-select" style="max-width:180px;" onchange="renderTable()">
+        <!-- Filter Tambahan: Rumah Sakit -->
+        <select id="filterTabelRS" class="history-select" style="max-width:180px;" onchange="renderTable()">
+          <option value="SEMUA" selected>Semua Rumah Sakit</option>
+        </select>
+        <select id="filterTabelStatus" class="history-select" style="max-width:160px;" onchange="renderTable()">
           <option value="SEMUA" selected>Semua Status Pasien</option>
           <option value="AKTIF">Hanya Pasien Aktif</option>
           <option value="PULANG">Hanya Pasien Pulang</option>
         </select>
-        <select id="filterTabelRuang" class="history-select" style="max-width:180px;" onchange="renderTable()">
+        <select id="filterTabelRuang" class="history-select" style="max-width:160px;" onchange="renderTable()">
           <option value="SEMUA">Semua Kamar/Ruang</option>
         </select>
-        <select id="filterTabelDPJP" class="history-select" style="max-width:180px;" onchange="renderTable()">
+        <select id="filterTabelDPJP" class="history-select" style="max-width:160px;" onchange="renderTable()">
           <option value="SEMUA">Semua DPJP</option>
         </select>
       </div>
@@ -878,6 +899,7 @@
       <table id="tabelPasien">
         <thead>
           <tr>
+            <th>Rumah Sakit</th>
             <th>Ruang / Bed</th>
             <th>Status / Rawat</th>
             <th>Nama / Usia / RM</th>
@@ -1645,6 +1667,7 @@
       'pBed': 'list_pBed',
       'pRuangLainnya': 'list_pRuangLainnya',
       'pDPJPLainnya': 'list_pDPJPLainnya',
+      'oKU': 'list_oKU',
       'oO2Via': 'list_oO2Via',
       'oFKL': 'list_oFKL',
       'oPupil': 'list_oPupil',
@@ -1706,14 +1729,18 @@
     const filterSelect = document.getElementById('filterDPJPReport');
     const filterTableDPJP = document.getElementById('filterTabelDPJP');
     const filterTableRuang = document.getElementById('filterTabelRuang');
+    const filterTableRS = document.getElementById('filterTabelRS');
 
     const listDPJP = [];
     const listRuang = [];
+    const listRS = [];
 
     pasienList.forEach(p => {
-      const cleanDoc = p.dpjp.replace(/\(konsul\)/ig, '').trim();
+      const cleanDoc = p.dpjp ? p.dpjp.replace(/\(konsul\)/ig, '').trim() : '';
       if (cleanDoc && !listDPJP.includes(cleanDoc)) listDPJP.push(cleanDoc);
       if (p.ruang && !listRuang.includes(p.ruang)) listRuang.push(p.ruang);
+      const namaRS = p.rs || 'RSUD Sawerigading Palopo';
+      if (namaRS && !listRS.includes(namaRS)) listRS.push(namaRS);
     });
 
     if (filterSelect) {
@@ -1750,6 +1777,18 @@
         filterTableRuang.appendChild(opt);
       });
       if (listRuang.includes(curRuang)) filterTableRuang.value = curRuang;
+    }
+
+    if (filterTableRS) {
+      const curRS = filterTableRS.value;
+      filterTableRS.innerHTML = '<option value="SEMUA">Semua Rumah Sakit</option>';
+      listRS.forEach(rs => {
+        const opt = document.createElement('option');
+        opt.value = rs;
+        opt.innerText = rs;
+        filterTableRS.appendChild(opt);
+      });
+      if (listRS.includes(curRS)) filterTableRS.value = curRS;
     }
   }
 
@@ -1857,6 +1896,7 @@
     const ruangFinal = getSelectedRuang();
     const namaPasien = getVal('pNama');
     const rmPasien = getVal('pRM');
+    const rsSaatIni = getNamaRS();
 
     if (!namaPasien || !rmPasien) {
       alert("Nama Pasien dan No. RM wajib diisi!");
@@ -1868,6 +1908,7 @@
                            now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA';
 
     const data = {
+      rs: rsSaatIni,
       status: getVal('pStatus') || 'Baru',
       tglMasuk: getVal('pTglMasuk'),
       gelar: getVal('pGelar'),
@@ -1887,6 +1928,7 @@
       sAlergi: getVal('sAlergi'),
       sLainnya: getVal('sLainnya'),
 
+      oKU: getVal('oKU'),
       oTDSis: getVal('oTDSistol'),
       oTDDia: getVal('oTDDiastol'),
       oNadi: getVal('oNadi'),
@@ -1936,6 +1978,7 @@
     saveToMemory('sRPO', data.sRPO);
     saveToMemory('sAlergi', data.sAlergi);
     saveToMemory('sLainnya', data.sLainnya);
+    saveToMemory('oKU', data.oKU);
     saveToMemory('oO2Via', data.oO2Via);
     saveToMemory('oTemuanLain', data.oTemuanLain);
     saveToMemory('oFKL', data.oFKL);
@@ -1962,6 +2005,7 @@
       const snapshotRiwayat = {
         tanggalWaktu: dataLama.updatedAt || 'Follow-Up Terdahulu',
         sKelPagi: dataLama.sKelPagi || '',
+        ku: dataLama.oKU || '-',
         td: (dataLama.oTDSis && dataLama.oTDDia) ? `${dataLama.oTDSis}/${dataLama.oTDDia} mmHg` : '-',
         map: hitungMAP(dataLama.oTDSis, dataLama.oTDDia),
         gcs: hitungKesadaran(dataLama.oGCSE || '4', dataLama.oGCSM || '6', dataLama.oGCSV || '5'),
@@ -1997,6 +2041,7 @@
     const tbody = document.querySelector('#tabelPasien tbody');
     tbody.innerHTML = '';
 
+    const filterRS = document.getElementById('filterTabelRS') ? document.getElementById('filterTabelRS').value : 'SEMUA';
     const filterStatus = document.getElementById('filterTabelStatus') ? document.getElementById('filterTabelStatus').value : 'SEMUA';
     const filterRuang = document.getElementById('filterTabelRuang') ? document.getElementById('filterTabelRuang').value : 'SEMUA';
     const filterDPJP = document.getElementById('filterTabelDPJP') ? document.getElementById('filterTabelDPJP').value : 'SEMUA';
@@ -2005,7 +2050,9 @@
 
     pasienList.forEach((p, idx) => {
       const isPulang = (p.status === 'Pulang');
+      const rsPasien = p.rs || 'RSUD Sawerigading Palopo';
 
+      if (filterRS !== 'SEMUA' && rsPasien !== filterRS) return;
       if (filterStatus === 'AKTIF' && isPulang) return;
       if (filterStatus === 'PULANG' && !isPulang) return;
 
@@ -2035,6 +2082,7 @@
       const btnPulangClass = isPulang ? 'alt' : 'warn-btn';
 
       tr.innerHTML = `
+        <td><small style="font-weight:700; color:#0369a1;">${rsPasien}</small></td>
         <td><b>${p.ruang}</b><br><small>${p.bed || '-'}</small></td>
         <td>${badge}${rawatInfo}</td>
         <td><b>${namaDisplay}</b> (${p.usia || '-'} Thn)<br><small>RM: ${p.rm}</small></td>
@@ -2065,6 +2113,18 @@
     if (formTitle) formTitle.innerText = `Edit Pasien: ${p.nama || ''}`;
     if (btnSimpan) btnSimpan.innerText = `🔄 Perbarui Data Pasien`;
 
+    if (p.rs) {
+      const selRotasi = document.getElementById('rotasiRS');
+      if (p.rs === 'RSUD Sawerigading Palopo') {
+        selRotasi.value = 'RSUD Sawerigading Palopo';
+        document.getElementById('rotasiRSLainnya').style.display = 'none';
+      } else {
+        selRotasi.value = 'Lainnya';
+        document.getElementById('rotasiRSLainnya').style.display = 'block';
+        document.getElementById('rotasiRSLainnya').value = p.rs;
+      }
+    }
+
     setVal('pStatus', p.status || 'Lama');
     toggleStatusPasien();
 
@@ -2074,7 +2134,6 @@
     setVal('pUsia', p.usia || '');
     setVal('pRM', p.rm || '');
 
-    // Set Ruangan
     const predefinedRuang = [
       "Cemara (Lt 1)", "Edelwais (Lt 1)", "Flamboyan (Lt 2)", "Edelwais (Lt 2)",
       "Geranium (Lt 2)", "Anggrek (Lt 1)", "Bougenville (Lt 1)", "Dahlia (Lt 1)",
@@ -2134,6 +2193,7 @@
     setVal('sAlergi', p.sAlergi || p.alergi || '');
     setVal('sLainnya', p.sLainnya || p.riwayatLain || '');
 
+    setVal('oKU', p.oKU || p.ku || '');
     setVal('oTDSistol', p.oTDSis || p.oTDSistol || p.tdSistol || '');
     setVal('oTDDiastol', p.oTDDia || p.oTDDiastol || p.tdDiastol || '');
     setVal('oNadi', p.oNadi || p.nadi || '');
@@ -2252,6 +2312,7 @@
     setVal('sRPO', '');
     setVal('sAlergi', '');
     setVal('sLainnya', '');
+    setVal('oKU', '');
     setVal('oTDSistol', '');
     setVal('oTDDiastol', '');
     setVal('oNadi', '');
@@ -2350,10 +2411,11 @@
     const gcsVal = hitungKesadaran(p.oGCSE, p.oGCSM, p.oGCSV);
     const hariRawat = hitungHariRawat(p.tglMasuk);
     const panduan = generateRekomendasiPPK(p.diag, p.oGCSE, p.oGCSM, p.oGCSV);
-    const namaRS = getNamaRS();
+    const namaRS = p.rs || getNamaRS();
 
     const kelPagiMedis = terapkanIstilahMedis(p.sKelPagi || '-');
     const kelMasukMedis = terapkanIstilahMedis(p.sKelMasuk || '-');
+    const kuMedis = p.oKU || '-';
     const temuanLainMedis = terapkanIstilahMedis(p.oTemuanLain || p.oFisikLain || '');
     const penunjangMedis = p.oPenunjang || '-';
     const sensorikMedis = terapkanIstilahMedis(p.oSensorik || '-');
@@ -2380,6 +2442,11 @@
                 <td style="border:1px solid #cbd5e1; padding:4px 6px; font-weight:600;">Keluhan Pagi</td>
                 <td style="border:1px solid #cbd5e1; padding:4px 6px;">${kelPagiMedis}</td>
                 <td style="border:1px solid #cbd5e1; padding:4px 6px;">${p.riwayatFollowUp[0].sKelPagi || '-'}</td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #cbd5e1; padding:4px 6px; font-weight:600;">Keadaan Umum (KU)</td>
+                <td style="border:1px solid #cbd5e1; padding:4px 6px;">${kuMedis}</td>
+                <td style="border:1px solid #cbd5e1; padding:4px 6px;">${p.riwayatFollowUp[0].ku || '-'}</td>
               </tr>
               <tr>
                 <td style="border:1px solid #cbd5e1; padding:4px 6px; font-weight:600;">TD / MAP</td>
@@ -2424,7 +2491,7 @@
         </tr>
         <tr>
           <td style="border:none;"><b>Lama Rawat:</b> ${hariRawat ? 'Hari ke-' + hariRawat : '-'} (Masuk: ${formatTanggalID(p.tglMasuk) || '-'})</td>
-          <td style="border:none;"></td>
+          <td style="border:none;"><b>Rumah Sakit:</b> ${namaRS}</td>
         </tr>
       </table>
 
@@ -2438,6 +2505,7 @@
       <hr style="border:0; border-top:1px solid #94a3b8; margin:6px 0;">
 
       <h3 style="margin:4px 0; font-size:11pt; color:#0f2b48;">OBJECTIVE (O/)</h3>
+      <p style="margin:2px 0;"><b>Keadaan Umum (KU):</b> ${kuMedis}</p>
       <p style="margin:2px 0;"><b>TTV:</b> TD: ${p.oTDSis || '-'}/${p.oTDDia || '-'} mmHg ${mapVal ? '(MAP '+mapVal+' mmHg)' : ''} | N: ${p.oNadi || '-'} x/m | RR: ${p.oRR || '-'} x/m | S: ${p.oSuhu || '-'} °C | SpO2: ${p.oSpO2 || '-'}% via ${p.oO2Via || 'RA'}</p>
       <p style="margin:2px 0;"><b>GCS:</b> ${gcsVal} | <b>NRS:</b> ${interpretasiNRS(p.oNRS) || '-'}</p>
       ${temuanLainMedis ? `<p style="margin:2px 0;"><b>Pemeriksaan/Temuan Lain:</b> ${temuanLainMedis}</p>` : ''}
@@ -2503,12 +2571,15 @@
   }
 
   function cetakSemuaResumePDF() {
+    const filterRS = document.getElementById('filterTabelRS') ? document.getElementById('filterTabelRS').value : 'SEMUA';
     const filterStatus = document.getElementById('filterTabelStatus') ? document.getElementById('filterTabelStatus').value : 'SEMUA';
     const filterRuang = document.getElementById('filterTabelRuang') ? document.getElementById('filterTabelRuang').value : 'SEMUA';
     const filterDPJP = document.getElementById('filterTabelDPJP') ? document.getElementById('filterTabelDPJP').value : 'SEMUA';
 
     const target = pasienList.filter(p => {
       const isPulang = (p.status === 'Pulang');
+      const rsPasien = p.rs || 'RSUD Sawerigading Palopo';
+      if (filterRS !== 'SEMUA' && rsPasien !== filterRS) return false;
       if (filterStatus === 'AKTIF' && isPulang) return false;
       if (filterStatus === 'PULANG' && !isPulang) return false;
       if (filterRuang !== 'SEMUA' && p.ruang !== filterRuang) return false;
@@ -2590,8 +2661,10 @@
           
           const selRuang = document.getElementById('filterTabelRuang');
           const selDPJP = document.getElementById('filterTabelDPJP');
+          const selRS = document.getElementById('filterTabelRS');
           if (selRuang) selRuang.value = 'SEMUA';
           if (selDPJP) selDPJP.value = 'SEMUA';
+          if (selRS) selRS.value = 'SEMUA';
 
           updateFilterOptions();
           renderTable();
@@ -2625,8 +2698,11 @@
   }
 
   function filterPasienWhatsApp(filterDoc) {
+    const rotasiSekarang = getNamaRS();
     return pasienList.filter(p => {
       if (p.status === 'Pulang') return false;
+      const rsPasien = p.rs || 'RSUD Sawerigading Palopo';
+      if (rsPasien !== rotasiSekarang) return false;
       if (filterDoc === "SEMUA") return true;
       return p.dpjp.toLowerCase().includes(filterDoc.toLowerCase());
     });
@@ -2646,14 +2722,12 @@
     const dpjpStats = {};
 
     if (rotasiPilihan === "RSUD Sawerigading Palopo") {
-      // Format template tetap RSUD Sawerigading Palopo
       const strukturRuangan = [
         { grup: "Lantai 1", items: ["Anggrek (Lt 1)", "Bougenville (Lt 1)", "Cemara (Lt 1)", "Dahlia (Lt 1)", "Edelwais (Lt 1)"] },
         { grup: "Lantai 2", items: ["Anggrek (Lt 2)", "Cemara (Lt 2)", "Dahlia (Lt 2)", "Flamboyan (Lt 2)", "Edelwais (Lt 2)", "Geranium (Lt 2)"] },
         { grup: "Khusus", items: ["CVCU/ICCU", "ICU", "IGD"] }
       ];
 
-      // Ambil juga ruangan kustom di luar daftar default jika ada
       const ruangTersediaSet = new Set(targetPasien.map(p => p.ruang));
       const predefinedSemua = [
         "Anggrek (Lt 1)", "Bougenville (Lt 1)", "Cemara (Lt 1)", "Dahlia (Lt 1)", "Edelwais (Lt 1)",
@@ -2707,7 +2781,6 @@
         });
       }
     } else {
-      // Format fleksibel untuk rumah sakit lain (menyesuaikan hanya ruangan yang terisi)
       const groups = {};
       targetPasien.forEach(p => {
         const rng = p.ruang || 'Bangsal Rawat';
@@ -2787,8 +2860,10 @@
         if (sLines) text += `S/\n${sLines}\n`;
 
         let oLines = '';
-        let ttvLines = '';
 
+        if (p.oKU) oLines += `KU : ${p.oKU}\n`;
+
+        let ttvLines = '';
         if (p.oTDSis && p.oTDDia) {
           const mapVal = hitungMAP(p.oTDSis, p.oTDDia);
           const mapStr = mapVal ? ` (MAP ${mapVal} mmHg)` : '';
