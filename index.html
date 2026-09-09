@@ -359,9 +359,10 @@
     </div>
   </div>
 
+  <!-- Data Jaga & Identitas Koas (Diperbarui dengan Section Rotasi RS) -->
   <div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-      <h3 style="margin:0;">Data Jaga & Identitas Koas</h3>
+      <h3 style="margin:0;">Data Jaga, Rotasi & Identitas Koas</h3>
       <div style="display:flex; align-items:center; gap:8px;">
         <span style="font-size:11px; color:#64748b; font-weight:600;">Ganti Profil Koas:</span>
         <select id="pilihProfilKoas" class="history-select" style="max-width:160px;" onchange="gantiProfilKoas(this.value)">
@@ -369,7 +370,15 @@
         </select>
       </div>
     </div>
-    <div class="grid-3">
+    <div class="grid-4">
+      <div>
+        <div class="label-wrapper"><label for="rotasiRS">Rotasi Rumah Sakit</label></div>
+        <select id="rotasiRS" onchange="toggleRotasiRS()">
+          <option value="RSUD Sawerigading Palopo" selected>RSUD Sawerigading Palopo</option>
+          <option value="Lainnya">Rumah Sakit Lainnya...</option>
+        </select>
+        <input type="text" id="rotasiRSLainnya" placeholder="Tulis nama rumah sakit" style="display: none; margin-top: 4px;" oninput="simpanOtomatisKoas()">
+      </div>
       <div>
         <div class="label-wrapper"><label for="koasNama">Nama Koas</label></div>
         <input type="text" id="koasNama" list="list_koasNama" placeholder="Nama lengkap koas" oninput="simpanOtomatisKoas()">
@@ -436,8 +445,9 @@
         <datalist id="list_pRM"></datalist>
       </div>
       <div>
+        <!-- Ruangan dengan opsi input manual -->
         <div class="label-wrapper"><label for="pRuang">Ruangan / Lokasi</label></div>
-        <select id="pRuang">
+        <select id="pRuang" onchange="toggleCustomRuang()">
           <option value="Cemara (Lt 1)">Cemara (Lt 1)</option>
           <option value="Edelwais (Lt 1)">Edelwais (Lt 1)</option>
           <option value="Flamboyan (Lt 2)">Flamboyan (Lt 2)</option>
@@ -452,7 +462,10 @@
           <option value="ICU">ICU</option>
           <option value="CVCU/ICCU">CVCU/ICCU</option>
           <option value="IGD">IGD</option>
+          <option value="Lainnya">Ruangan Lainnya (Tulis Manual)...</option>
         </select>
+        <input type="text" id="pRuangLainnya" list="list_pRuangLainnya" placeholder="Tulis nama ruangan/bangsal" style="display: none; margin-top: 4px;">
+        <datalist id="list_pRuangLainnya"></datalist>
       </div>
       <div>
         <div class="label-wrapper"><label for="pBed">Nomor Bed</label></div>
@@ -474,13 +487,7 @@
         <input type="text" id="pDPJPLainnya" list="list_pDPJPLainnya" placeholder="Tulis nama DPJP & gelar" style="display: none; margin-top: 4px;">
         <datalist id="list_pDPJPLainnya"></datalist>
       </div>
-      <div>
-        <div class="label-wrapper">
-          <label for="pDiag">Diagnosis (Multipel via Enter)</label>
-          <select class="history-select" onchange="insertHistory('pDiag', this.value)"><option value="">↺ Histori...</option></select>
-        </div>
-        <textarea id="pDiag" rows="2" placeholder="Tuliskan diagnosis kerja / klinis" oninput="updateBedsideGuidance()"></textarea>
-      </div>
+      <div></div>
     </div>
 
     <div class="section-title">B. Subjective (S/)</div>
@@ -544,7 +551,7 @@
 
     <div id="boxBedsideGuidance" class="guidance-box" style="display:none;">
       <b>💡 Panduan Klinis & Rekomendasi Pemeriksaan Bedside (PPK):</b>
-      <div id="txtBedsideGuidance">Ketik diagnosis atau keluhan untuk memunculkan panduan...</div>
+      <div id="txtBedsideGuidance">Ketik assessment atau keluhan untuk memunculkan panduan...</div>
     </div>
     
     <div style="font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Tanda Vital (Cukup Angka Saja)</div>
@@ -803,7 +810,28 @@
       </div>
     </div>
 
-    <div class="section-title">D. Planning (P/) & Instruksi (I/)</div>
+    <!-- Tambahan Form Pemeriksaan Penunjang pada Section O/ -->
+    <div style="margin-top:10px;">
+      <div class="label-wrapper">
+        <label for="oPenunjang">Hasil Pemeriksaan Penunjang (Laboratorium / Radiologi / Lainnya)</label>
+        <div class="label-actions">
+          <select class="history-select" onchange="insertHistory('oPenunjang', this.value)"><option value="">↺ Histori...</option></select>
+        </div>
+      </div>
+      <textarea id="oPenunjang" rows="3" placeholder="Contoh:&#10;- CT-Scan Kepala: Infark cerebri subakut lobus temporoparietal sinistra&#10;- Lab Darah: GDS 145, Hb 13.2, Leukosit 8.400, Kolesterol Total 240"></textarea>
+    </div>
+
+    <!-- Section Assessment (A/) dipindahkan setelah O/ -->
+    <div class="section-title">D. Assessment (A/)</div>
+    <div>
+      <div class="label-wrapper">
+        <label for="pDiag">Assessment / Diagnosis Kerja (Multipel via Enter)</label>
+        <select class="history-select" onchange="insertHistory('pDiag', this.value)"><option value="">↺ Histori...</option></select>
+      </div>
+      <textarea id="pDiag" rows="2" placeholder="Tuliskan assessment / diagnosis kerja / klinis pasien" oninput="updateBedsideGuidance()"></textarea>
+    </div>
+
+    <div class="section-title">E. Planning (P/) & Instruksi (I/)</div>
     <div class="grid-2">
       <div>
         <div class="label-wrapper">
@@ -992,6 +1020,47 @@
     if (el) el.value = (val !== undefined && val !== null) ? val : '';
   }
 
+  function toggleRotasiRS() {
+    const rotasi = getVal('rotasiRS');
+    const inputLain = document.getElementById('rotasiRSLainnya');
+    if (rotasi === 'Lainnya') {
+      inputLain.style.display = 'block';
+      inputLain.focus();
+    } else {
+      inputLain.style.display = 'none';
+      inputLain.value = '';
+    }
+    simpanOtomatisKoas();
+  }
+
+  function getNamaRS() {
+    const rotasi = getVal('rotasiRS');
+    if (rotasi === 'Lainnya') {
+      return getVal('rotasiRSLainnya') || 'Rumah Sakit';
+    }
+    return rotasi || 'RSUD Sawerigading Palopo';
+  }
+
+  function toggleCustomRuang() {
+    const ruangSelect = document.getElementById('pRuang').value;
+    const ruangCustom = document.getElementById('pRuangLainnya');
+    if (ruangSelect === 'Lainnya') {
+      ruangCustom.style.display = 'block';
+      ruangCustom.focus();
+    } else {
+      ruangCustom.style.display = 'none';
+      ruangCustom.value = '';
+    }
+  }
+
+  function getSelectedRuang() {
+    const val = document.getElementById('pRuang').value;
+    if (val === 'Lainnya') {
+      return document.getElementById('pRuangLainnya').value.trim() || 'Ruangan Rawat';
+    }
+    return val;
+  }
+
   function updateBedsideGuidance() {
     const diag = getVal('pDiag').toLowerCase();
     const kelMasuk = getVal('sKeluhanMasuk').toLowerCase();
@@ -1115,6 +1184,16 @@
     if (profilTersimpan) {
       if (profilTersimpan.nama) document.getElementById('koasNama').value = profilTersimpan.nama;
       if (profilTersimpan.nim) document.getElementById('koasNim').value = profilTersimpan.nim;
+      if (profilTersimpan.rotasiRS) {
+        const selRotasi = document.getElementById('rotasiRS');
+        if (profilTersimpan.rotasiRS === 'RSUD Sawerigading Palopo') {
+          selRotasi.value = 'RSUD Sawerigading Palopo';
+        } else {
+          selRotasi.value = 'Lainnya';
+          document.getElementById('rotasiRSLainnya').style.display = 'block';
+          document.getElementById('rotasiRSLainnya').value = profilTersimpan.rotasiRS;
+        }
+      }
     }
     muatDropdownProfilKoas();
   }
@@ -1122,15 +1201,16 @@
   function simpanOtomatisKoas() {
     const nama = getVal('koasNama');
     const nim = getVal('koasNim');
-    localStorage.setItem('neuro_active_koas', JSON.stringify({ nama, nim }));
+    const rotasi = getNamaRS();
+    localStorage.setItem('neuro_active_koas', JSON.stringify({ nama, nim, rotasiRS: rotasi }));
 
     if (nama && nim) {
       let koleksi = JSON.parse(localStorage.getItem('neuro_koas_profiles')) || [];
       const index = koleksi.findIndex(k => k.nim === nim || k.nama.toLowerCase() === nama.toLowerCase());
       if (index === -1) {
-        koleksi.unshift({ nama, nim });
+        koleksi.unshift({ nama, nim, rotasiRS: rotasi });
       } else {
-        koleksi[index] = { nama, nim };
+        koleksi[index] = { nama, nim, rotasiRS: rotasi };
       }
       localStorage.setItem('neuro_koas_profiles', JSON.stringify(koleksi));
       muatDropdownProfilKoas();
@@ -1145,7 +1225,7 @@
     koleksi.forEach((k, idx) => {
       const opt = document.createElement('option');
       opt.value = idx;
-      opt.innerText = k.nama;
+      opt.innerText = `${k.nama} (${k.rotasiRS || 'RSUD Sawerigading'})`;
       sel.appendChild(opt);
     });
   }
@@ -1157,6 +1237,17 @@
     if (p) {
       document.getElementById('koasNama').value = p.nama;
       document.getElementById('koasNim').value = p.nim;
+      if (p.rotasiRS) {
+        const selRotasi = document.getElementById('rotasiRS');
+        if (p.rotasiRS === 'RSUD Sawerigading Palopo') {
+          selRotasi.value = 'RSUD Sawerigading Palopo';
+          document.getElementById('rotasiRSLainnya').style.display = 'none';
+        } else {
+          selRotasi.value = 'Lainnya';
+          document.getElementById('rotasiRSLainnya').style.display = 'block';
+          document.getElementById('rotasiRSLainnya').value = p.rotasiRS;
+        }
+      }
       localStorage.setItem('neuro_active_koas', JSON.stringify(p));
     }
   }
@@ -1552,6 +1643,7 @@
       'pNama': 'list_pNama',
       'pRM': 'list_pRM',
       'pBed': 'list_pBed',
+      'pRuangLainnya': 'list_pRuangLainnya',
       'pDPJPLainnya': 'list_pDPJPLainnya',
       'oO2Via': 'list_oO2Via',
       'oFKL': 'list_oFKL',
@@ -1572,7 +1664,7 @@
       }
     }
 
-    const textareas = ['pDiag', 'sKeluhanMasuk', 'sKeluhanPagi', 'sRKS', 'sRPD', 'sRPO', 'sAlergi', 'sLainnya', 'oTemuanLain', 'oMotPergerakan', 'oMotTonus', 'oSensorik', 'oRefFisio', 'oRefPato', 'oOtonom', 'oLainLain', 'pPlan', 'pInstruksi'];
+    const textareas = ['pDiag', 'sKeluhanMasuk', 'sKeluhanPagi', 'sRKS', 'sRPD', 'sRPO', 'sAlergi', 'sLainnya', 'oTemuanLain', 'oMotPergerakan', 'oMotTonus', 'oSensorik', 'oRefFisio', 'oRefPato', 'oOtonom', 'oLainLain', 'oPenunjang', 'pPlan', 'pInstruksi'];
     
     textareas.forEach(id => {
       const ta = document.getElementById(id);
@@ -1762,6 +1854,7 @@
 
   function simpanPasien() {
     const dpjpFinal = getSelectedDPJP();
+    const ruangFinal = getSelectedRuang();
     const namaPasien = getVal('pNama');
     const rmPasien = getVal('pRM');
 
@@ -1781,7 +1874,7 @@
       nama: namaPasien,
       usia: getVal('pUsia'),
       rm: rmPasien,
-      ruang: getVal('pRuang') || 'Cemara (Lt 1)',
+      ruang: ruangFinal,
       bed: getVal('pBed'),
       dpjp: dpjpFinal,
       diag: getVal('pDiag'),
@@ -1820,6 +1913,7 @@
       oRefPato: getVal('oRefPato'),
       oOtonom: getVal('oOtonom'),
       oLainLain: getVal('oLainLain'),
+      oPenunjang: getVal('oPenunjang'),
 
       pPlan: getVal('pPlan'),
       pInstruksi: getVal('pInstruksi'),
@@ -1832,6 +1926,7 @@
     saveToMemory('pNama', data.nama);
     saveToMemory('pRM', data.rm);
     saveToMemory('pBed', data.bed);
+    saveToMemory('pRuangLainnya', getVal('pRuangLainnya'));
     saveToMemory('pDPJPLainnya', getVal('pDPJPLainnya'));
     saveToMemory('pDiag', data.diag);
     saveToMemory('sKelMasuk', data.sKelMasuk);
@@ -1854,6 +1949,7 @@
     saveToMemory('oRefPato', data.oRefPato);
     saveToMemory('oOtonom', data.oOtonom);
     saveToMemory('oLainLain', data.oLainLain);
+    saveToMemory('oPenunjang', data.oPenunjang);
     saveToMemory('pPlan', data.pPlan);
     saveToMemory('pInstruksi', data.pInstruksi);
 
@@ -1977,7 +2073,25 @@
     setVal('pNama', p.nama || '');
     setVal('pUsia', p.usia || '');
     setVal('pRM', p.rm || '');
-    setVal('pRuang', p.ruang || 'Cemara (Lt 1)');
+
+    // Set Ruangan
+    const predefinedRuang = [
+      "Cemara (Lt 1)", "Edelwais (Lt 1)", "Flamboyan (Lt 2)", "Edelwais (Lt 2)",
+      "Geranium (Lt 2)", "Anggrek (Lt 1)", "Bougenville (Lt 1)", "Dahlia (Lt 1)",
+      "Anggrek (Lt 2)", "Cemara (Lt 2)", "Dahlia (Lt 2)", "ICU", "CVCU/ICCU", "IGD"
+    ];
+    const ruangSelect = document.getElementById('pRuang');
+    const ruangCustom = document.getElementById('pRuangLainnya');
+    if (predefinedRuang.includes(p.ruang)) {
+      ruangSelect.value = p.ruang;
+      ruangCustom.style.display = 'none';
+      ruangCustom.value = '';
+    } else {
+      ruangSelect.value = 'Lainnya';
+      ruangCustom.style.display = 'block';
+      ruangCustom.value = p.ruang || '';
+    }
+
     setVal('pBed', p.bed || '');
 
     let currentDPJP = p.dpjp || '';
@@ -2046,6 +2160,7 @@
     setVal('oRefPato', p.oRefPato || p.refPato || '');
     setVal('oOtonom', p.oOtonom || p.otonom || '');
     setVal('oLainLain', p.oLainLain || p.lainLain || '');
+    setVal('oPenunjang', p.oPenunjang || p.penunjang || '');
 
     setVal('pPlan', p.pPlan || p.plan || p.planning || '');
     setVal('pInstruksi', p.pInstruksi || p.instruksi || p.terapi || '');
@@ -2113,6 +2228,15 @@
     setVal('pUsia', '');
     setVal('pRM', '');
     setVal('pBed', '');
+
+    const ruangSelect = document.getElementById('pRuang');
+    if (ruangSelect) ruangSelect.selectedIndex = 0;
+    const ruangCustom = document.getElementById('pRuangLainnya');
+    if (ruangCustom) {
+      ruangCustom.style.display = 'none';
+      ruangCustom.value = '';
+    }
+
     const dpjpSelect = document.getElementById('pDPJP');
     if (dpjpSelect) dpjpSelect.selectedIndex = 0;
     const dpjpLainnya = document.getElementById('pDPJPLainnya');
@@ -2154,6 +2278,7 @@
     setVal('oRefPato', '');
     setVal('oOtonom', '');
     setVal('oLainLain', '');
+    setVal('oPenunjang', '');
     setVal('pPlan', '');
     setVal('pInstruksi', '');
 
@@ -2225,12 +2350,15 @@
     const gcsVal = hitungKesadaran(p.oGCSE, p.oGCSM, p.oGCSV);
     const hariRawat = hitungHariRawat(p.tglMasuk);
     const panduan = generateRekomendasiPPK(p.diag, p.oGCSE, p.oGCSM, p.oGCSV);
+    const namaRS = getNamaRS();
 
     const kelPagiMedis = terapkanIstilahMedis(p.sKelPagi || '-');
     const kelMasukMedis = terapkanIstilahMedis(p.sKelMasuk || '-');
     const temuanLainMedis = terapkanIstilahMedis(p.oTemuanLain || p.oFisikLain || '');
+    const penunjangMedis = p.oPenunjang || '-';
     const sensorikMedis = terapkanIstilahMedis(p.oSensorik || '-');
     const fklMedis = terapkanIstilahMedis(p.oFKL || '-');
+    const diagMedis = p.diag || '-';
     const planText = p.pPlan || p.plan || p.planning || '-';
     const instruksiText = p.pInstruksi || p.instruksi || p.terapi || '-';
 
@@ -2269,8 +2397,8 @@
                 <td style="border:1px solid #cbd5e1; padding:4px 6px;">${p.riwayatFollowUp[0].motorik || '-'}</td>
               </tr>
               <tr>
-                <td style="border:1px solid #cbd5e1; padding:4px 6px; font-weight:600;">Planning / Instruksi</td>
-                <td style="border:1px solid #cbd5e1; padding:4px 6px; white-space:pre-wrap;">${planText}</td>
+                <td style="border:1px solid #cbd5e1; padding:4px 6px; font-weight:600;">Assessment & Plan</td>
+                <td style="border:1px solid #cbd5e1; padding:4px 6px; white-space:pre-wrap;">${diagMedis}\n${planText}</td>
                 <td style="border:1px solid #cbd5e1; padding:4px 6px; white-space:pre-wrap;">${p.riwayatFollowUp[0].pPlan || '-'}</td>
               </tr>
             </tbody>
@@ -2282,7 +2410,7 @@
     return `
       <div style="text-align:center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px;">
         <h2 style="margin:0; font-size:15pt; text-transform:uppercase;">RESUME FOLLOW-UP HARIAN PASIEN NEUROLOGI</h2>
-        <p style="margin:3px 0 0 0; font-size:9.5pt;">Fakultas Kedokteran Universitas Muslim Indonesia | ${tgl}</p>
+        <p style="margin:3px 0 0 0; font-size:9.5pt;">${namaRS} | FK UMI | ${tgl}</p>
       </div>
 
       <table style="width:100%; border:none; margin-bottom:8px; font-size:10pt;">
@@ -2295,21 +2423,21 @@
           <td style="border:none;"><b>Ruang / Bed:</b> ${p.ruang} / ${p.bed || '-'}</td>
         </tr>
         <tr>
-          <td style="border:none;"><b>Diagnosis:</b> ${p.diag || '-'}</td>
           <td style="border:none;"><b>Lama Rawat:</b> ${hariRawat ? 'Hari ke-' + hariRawat : '-'} (Masuk: ${formatTanggalID(p.tglMasuk) || '-'})</td>
+          <td style="border:none;"></td>
         </tr>
       </table>
 
       <hr style="border:0; border-top:1px solid #94a3b8; margin:6px 0;">
 
-      <h3 style="margin:4px 0; font-size:11pt; color:#0f2b48;">SUBJECTIVE (S/) - TERKINI</h3>
+      <h3 style="margin:4px 0; font-size:11pt; color:#0f2b48;">SUBJECTIVE (S/)</h3>
       <p style="margin:2px 0;"><b>Keluhan Pagi:</b> ${kelPagiMedis}</p>
       <p style="margin:2px 0;"><b>Keluhan Masuk:</b> ${kelMasukMedis}</p>
       <p style="margin:2px 0;"><b>RPD:</b> ${p.sRPD || '-'} | <b>RPO:</b> ${p.sRPO || '-'} | <b>Alergi:</b> ${p.sAlergi || '-'}</p>
 
       <hr style="border:0; border-top:1px solid #94a3b8; margin:6px 0;">
 
-      <h3 style="margin:4px 0; font-size:11pt; color:#0f2b48;">OBJECTIVE (O/) - TERKINI</h3>
+      <h3 style="margin:4px 0; font-size:11pt; color:#0f2b48;">OBJECTIVE (O/)</h3>
       <p style="margin:2px 0;"><b>TTV:</b> TD: ${p.oTDSis || '-'}/${p.oTDDia || '-'} mmHg ${mapVal ? '(MAP '+mapVal+' mmHg)' : ''} | N: ${p.oNadi || '-'} x/m | RR: ${p.oRR || '-'} x/m | S: ${p.oSuhu || '-'} °C | SpO2: ${p.oSpO2 || '-'}% via ${p.oO2Via || 'RA'}</p>
       <p style="margin:2px 0;"><b>GCS:</b> ${gcsVal} | <b>NRS:</b> ${interpretasiNRS(p.oNRS) || '-'}</p>
       ${temuanLainMedis ? `<p style="margin:2px 0;"><b>Pemeriksaan/Temuan Lain:</b> ${temuanLainMedis}</p>` : ''}
@@ -2319,6 +2447,12 @@
       <p style="margin:2px 0;"><b>Motorik:</b> Kekuatan Atas: ${p.oKekSup || '-'} | Bawah: ${p.oKekInf || '-'} | Tonus: ${p.oMotTonus || '-'}</p>
       <p style="margin:2px 0;"><b>Refleks Fisiologis:</b> ${p.oRefFisio || '-'} | <b>Patologis:</b> ${p.oRefPato || '-'}</p>
       <p style="margin:2px 0;"><b>Sensorik:</b> ${sensorikMedis} | <b>Otonom:</b> ${p.oOtonom || '-'}</p>
+      <p style="margin:2px 0; white-space:pre-wrap;"><b>Pemeriksaan Penunjang:</b>\n${penunjangMedis}</p>
+
+      <hr style="border:0; border-top:1px solid #94a3b8; margin:6px 0;">
+
+      <h3 style="margin:4px 0; font-size:11pt; color:#0f2b48;">ASSESSMENT (A/)</h3>
+      <p style="margin:2px 0; white-space:pre-wrap;">${diagMedis}</p>
 
       <hr style="border:0; border-top:1px solid #94a3b8; margin:6px 0;">
 
@@ -2502,29 +2636,64 @@
     const tgl = getVal('tglLaporan') || "Hari ini";
     const filterDoc = document.getElementById('filterDPJPReport') ? document.getElementById('filterDPJPReport').value : 'SEMUA';
     const targetPasien = filterPasienWhatsApp(filterDoc);
+    const rotasiPilihan = getVal('rotasiRS');
+    const namaRS = getNamaRS();
 
     let docTitle = filterDoc === "SEMUA" ? "" : ` (${filterDoc})`;
     let text = `Assalamualaikum warahmatullahi wabarakatuh dok, tabe dok, mohon izin mengirimkan slaberan hari ini dok\n`;
-    text += `🌸*Slaberan Pasien Neurologi${docTitle}*🌸\n${tgl}\n\n`;
-
-    const strukturRuangan = [
-      { grup: "Lantai 1", items: ["Anggrek (Lt 1)", "Bougenville (Lt 1)", "Cemara (Lt 1)", "Dahlia (Lt 1)", "Edelwais (Lt 1)"] },
-      { grup: "Lantai 2", items: ["Anggrek (Lt 2)", "Cemara (Lt 2)", "Dahlia (Lt 2)", "Flamboyan (Lt 2)", "Edelwais (Lt 2)", "Geranium (Lt 2)"] },
-      { grup: "Khusus", items: ["CVCU/ICCU", "ICU", "IGD"] }
-    ];
+    text += `🌸*Slaberan Pasien Neurologi${docTitle}*🌸\n*${namaRS}*\n${tgl}\n\n`;
 
     const dpjpStats = {};
 
-    strukturRuangan.forEach(sec => {
-      if (sec.grup !== "Khusus") text += `*${sec.grup}*\n`;
+    if (rotasiPilihan === "RSUD Sawerigading Palopo") {
+      // Format template tetap RSUD Sawerigading Palopo
+      const strukturRuangan = [
+        { grup: "Lantai 1", items: ["Anggrek (Lt 1)", "Bougenville (Lt 1)", "Cemara (Lt 1)", "Dahlia (Lt 1)", "Edelwais (Lt 1)"] },
+        { grup: "Lantai 2", items: ["Anggrek (Lt 2)", "Cemara (Lt 2)", "Dahlia (Lt 2)", "Flamboyan (Lt 2)", "Edelwais (Lt 2)", "Geranium (Lt 2)"] },
+        { grup: "Khusus", items: ["CVCU/ICCU", "ICU", "IGD"] }
+      ];
 
-      sec.items.forEach(r => {
-        const matching = targetPasien.filter(p => p.ruang.toLowerCase() === r.toLowerCase());
-        const icon = r.includes("ICU") ? "🛑" : r.includes("CVCU") ? "🫀" : r.includes("IGD") ? "🚑" : "🏡";
-        const namaRuangBersih = r.replace(/ \(Lt \d\)/, '');
+      // Ambil juga ruangan kustom di luar daftar default jika ada
+      const ruangTersediaSet = new Set(targetPasien.map(p => p.ruang));
+      const predefinedSemua = [
+        "Anggrek (Lt 1)", "Bougenville (Lt 1)", "Cemara (Lt 1)", "Dahlia (Lt 1)", "Edelwais (Lt 1)",
+        "Anggrek (Lt 2)", "Cemara (Lt 2)", "Dahlia (Lt 2)", "Flamboyan (Lt 2)", "Edelwais (Lt 2)", "Geranium (Lt 2)",
+        "CVCU/ICCU", "ICU", "IGD"
+      ];
+      const customRuangan = Array.from(ruangTersediaSet).filter(r => !predefinedSemua.includes(r));
 
-        if (matching.length > 0) {
-          text += `*${namaRuangBersih} ${icon} (${matching.length})*\n`;
+      strukturRuangan.forEach(sec => {
+        if (sec.grup !== "Khusus") text += `*${sec.grup}*\n`;
+
+        sec.items.forEach(r => {
+          const matching = targetPasien.filter(p => p.ruang.toLowerCase() === r.toLowerCase());
+          const icon = r.includes("ICU") ? "🛑" : r.includes("CVCU") ? "🫀" : r.includes("IGD") ? "🚑" : "🏡";
+          const namaRuangBersih = r.replace(/ \(Lt \d\)/, '');
+
+          if (matching.length > 0) {
+            text += `*${namaRuangBersih} ${icon} (${matching.length})*\n`;
+            matching.forEach((p, idx) => {
+              const diagClean = p.diag ? p.diag.replace(/\n/g, ' + ') : '-';
+              const usiaStr = p.usia ? `${p.usia} Tahun` : '-';
+              const namaLengkap = formatNamaLengkap(p.gelar, p.nama);
+              text += `${idx + 1}. ${namaLengkap}/${usiaStr}/RM ${p.rm}/${p.dpjp}/${p.bed || '-'}/${diagClean}\n`;
+
+              const cleanDPJP = p.dpjp.replace(/\(konsul\)/ig, '').trim();
+              dpjpStats[cleanDPJP] = (dpjpStats[cleanDPJP] || 0) + 1;
+            });
+            text += `\n`;
+          } else {
+            text += `${namaRuangBersih} ${icon} (0)\n`;
+          }
+        });
+        text += `\n`;
+      });
+
+      if (customRuangan.length > 0) {
+        text += `*Ruangan Lainnya*\n`;
+        customRuangan.forEach(r => {
+          const matching = targetPasien.filter(p => p.ruang === r);
+          text += `*${r} (${matching.length})*\n`;
           matching.forEach((p, idx) => {
             const diagClean = p.diag ? p.diag.replace(/\n/g, ' + ') : '-';
             const usiaStr = p.usia ? `${p.usia} Tahun` : '-';
@@ -2535,12 +2704,31 @@
             dpjpStats[cleanDPJP] = (dpjpStats[cleanDPJP] || 0) + 1;
           });
           text += `\n`;
-        } else {
-          text += `${namaRuangBersih} ${icon} (0)\n`;
-        }
+        });
+      }
+    } else {
+      // Format fleksibel untuk rumah sakit lain (menyesuaikan hanya ruangan yang terisi)
+      const groups = {};
+      targetPasien.forEach(p => {
+        const rng = p.ruang || 'Bangsal Rawat';
+        if (!groups[rng]) groups[rng] = [];
+        groups[rng].push(p);
+
+        const cleanDPJP = p.dpjp.replace(/\(konsul\)/ig, '').trim();
+        dpjpStats[cleanDPJP] = (dpjpStats[cleanDPJP] || 0) + 1;
       });
-      text += `\n`;
-    });
+
+      for (const rng in groups) {
+        text += `*${rng.toUpperCase()} (${groups[rng].length})*\n`;
+        groups[rng].forEach((p, idx) => {
+          const diagClean = p.diag ? p.diag.replace(/\n/g, ' + ') : '-';
+          const usiaStr = p.usia ? `${p.usia} Tahun` : '-';
+          const namaLengkap = formatNamaLengkap(p.gelar, p.nama);
+          text += `${idx + 1}. ${namaLengkap}/${usiaStr}/RM ${p.rm}/${p.dpjp}/${p.bed || '-'}/${diagClean}\n`;
+        });
+        text += `\n`;
+      }
+    }
 
     text += `Keterangan:\n`;
     for (const [dok, total] of Object.entries(dpjpStats)) {
@@ -2557,10 +2745,11 @@
     const nimKoas = getVal('koasNim') || "[Stambuk]";
     const filterDoc = document.getElementById('filterDPJPReport') ? document.getElementById('filterDPJPReport').value : 'SEMUA';
     const targetPasien = filterPasienWhatsApp(filterDoc);
+    const namaRS = getNamaRS();
 
     let dokIntro = filterDoc === "SEMUA" ? "pasien ta" : `pasien ta (${filterDoc})`;
 
-    let text = `Assalamualaikum warahmatullahi wabarakatuh dok. Mohon maaf mengganggu waktunya dok. Tabe dok mohon izin perkenalkan saya ${namaKoas} dengan stambuk ${nimKoas} MPPD Bagian Neurologi.\n`;
+    let text = `Assalamualaikum warahmatullahi wabarakatuh dok. Mohon maaf mengganggu waktunya dok. Tabe dok mohon izin perkenalkan saya ${namaKoas} dengan stambuk ${nimKoas} MPPD Bagian Neurologi ${namaRS}.\n`;
     text += `Mohon izin melaporkan Follow Up ${dokIntro} dokter\n\n`;
 
     const groups = {};
@@ -2645,7 +2834,13 @@
 
         if (motLines) oLines += `*Motorik*\n${motLines}`;
 
+        const penunjangStr = p.oPenunjang || p.penunjang;
+        if (penunjangStr) oLines += formatFieldMulti('Pemeriksaan Penunjang', penunjangStr);
+
         if (oLines) text += `O/\n${oLines}\n`;
+
+        const diagText = p.diag || p.diagnosa || p.diagnosis;
+        if (diagText) text += `A/\n${diagText}\n\n`;
 
         const pPlanText = p.pPlan || p.plan || p.planning;
         const pInstruksiText = p.pInstruksi || p.instruksi || p.terapi;
