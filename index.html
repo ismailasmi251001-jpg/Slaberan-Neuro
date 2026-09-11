@@ -2114,12 +2114,16 @@
     } catch(e) {
       console.error(e);
       alert("Penyimpanan lokal penuh karena ukuran gambar. Silakan backup file JSON atau kurangi jumlah foto.");
+      return;
     }
 
     renderTable();
     populateAllSuggestions();
     updateFilterOptions();
-    updateDropdownRiwayatTanggal(pasienList[currentPatientIndex]);
+    
+    // Auto-clear form setelah berhasil disimpan agar siap entri pasien baru
+    clearForm();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function editPasien(idx) {
