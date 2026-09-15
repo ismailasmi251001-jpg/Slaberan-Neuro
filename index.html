@@ -744,7 +744,7 @@
           <select class="history-select" onchange="insertHistory('sKeluhanMasuk', this.value)"><option value="">↺ Histori...</option></select>
         </div>
       </div>
-      <div id="sKeluhanMasuk" class="rich-editor" contenteditable="true" data-placeholder="Tuliskan keluhan utama saat awal masuk RS (Ctrl+B, Ctrl+I, Ctrl+U didukung)" oninput="updateBedsideGuidance()"></div>
+      <div id="sKeluhanMasuk" class="rich-editor" contenteditable="true" data-placeholder="Tuliskan keluhan utama saat awal masuk RS (Gunakan Ctrl+B, Ctrl+I, Ctrl+U)" oninput="updateBedsideGuidance()"></div>
     </div>
 
     <div id="secKeluhanPagi" style="display:none;">
@@ -1300,7 +1300,7 @@
 </div>
 
 <script>
-  // --- HELPER UNTUK VALUE DAN KONTEN (INPUT BIASA VS RICH EDITABLE) ---
+  // --- HELPER VALUE & RICH TEXT EDITOR ---
   function getVal(id) {
     const el = document.getElementById(id);
     if (!el) return '';
@@ -1343,6 +1343,7 @@
     return tmp.innerText.trim();
   }
 
+  // Shortcut Keyboard Langsung Visual
   document.addEventListener('keydown', function(e) {
     if (e.ctrlKey || e.metaKey) {
       const active = document.activeElement;
@@ -1362,6 +1363,7 @@
     }
   });
 
+  // --- INDEXEDDB STORAGE ---
   const DB_NAME = "MedLogDatabase";
   const STORE_NAME = "patients_emr";
   let dbInstance;
@@ -1415,7 +1417,7 @@
     alert("ℹ️ Fitur Integrasi Cloud Google Drive\n\nMigrasi otomatis ke IndexedDB telah berhasil melindungi data Anda dari batasan browser.\n\nUntuk melakukan auto-sync ke Google Drive, daftarkan aplikasi ini di Google Cloud Console untuk mendapatkan 'Client ID' OAuth 2.0 milik Anda sendiri demi keamanan data medis.\n\nGunakan tombol 'Backup Database (.json)' untuk mencadangkan data secara offline ke perangkat Anda secara berkala.");
   }
 
-  // --- DATABASE KOMPREHENSIF ICD-10 (TERURUT ABJAD & KODE ALFANUMERIK A - Z) ---
+  // --- DATABASE ICD-10 (TERURUT ABJAD & ALFANUMERIK A - Z) ---
   const kamusICD10 = [
     "A01.0 - Demam Tifoid",
     "A09 - Gastroenteritis Akut (GEA / Diare Akut)",
@@ -1504,7 +1506,7 @@
     "T20-T32 - Luka Bakar (Combustio)"
   ].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 
-  // --- DATABASE KOMPREHENSIF ICD-9-CM (TERURUT KODE NUMERIK 01 - 99) ---
+  // --- DATABASE ICD-9-CM (TERURUT KODE NUMERIK 01 - 99) ---
   const kamusICD9 = [
     "01.24 - Kraniotomi / Evakuasi Hematoma",
     "01.39 - Insisi & Drainase Abses Otak",
@@ -2048,9 +2050,12 @@
           ctx.drawImage(img, 0, 0, w, h);
 
           const compressedBase64 = canvas.toDataURL('image/jpeg', 0.72);
+          const tglAktif = getVal('cpptTanggalPeriksa') || new Date().toISOString().slice(0, 10);
           activeImageAttachments.push({
             data: compressedBase64,
-            label: "Hasil Penunjang"
+            label: "Hasil Penunjang",
+            uploadedAtDate: tglAktif,
+            isCarried: false
           });
           renderImagePreviews();
           showToast("Foto berhasil dimuat!");
@@ -2190,12 +2195,14 @@
     showToast(`Formulir disiapkan untuk kunjungan tanggal ${formatTanggalID(today)}.`);
   }
 
+  // --- AUTO CARRY DATA LENGKAP TERMASUK PENUNJANG & FOTO ---
   function autoCarryPreviousData(p) {
     const lastEntry = (p.cpptEntries && p.cpptEntries.length > 0) ? p.cpptEntries[0] : null;
     
     setVal('pStatus', 'Lama');
     toggleStatusPasien();
 
+    // Subjective
     setVal('sKeluhanMasuk', lastEntry ? lastEntry.sKelMasuk : '');
     setVal('sRKS', lastEntry ? lastEntry.sRKS : '');
     setVal('sRPD', lastEntry ? lastEntry.sRPD : '');
@@ -2203,6 +2210,7 @@
     setVal('sAlergi', lastEntry ? lastEntry.sAlergi : '');
     setVal('sLainnya', lastEntry ? lastEntry.sLainnya : '');
 
+    // Reset Parameter Harian
     setVal('sKeluhanPagi', '');
     setVal('oKU', 'Tampak sakit sedang');
     setVal('oTDSistol', '');
@@ -2231,10 +2239,24 @@
     setVal('oRefPato', lastEntry ? lastEntry.oRefPato : '');
     setVal('oOtonom', lastEntry ? lastEntry.oOtonom : '');
     setVal('oLainLain', '');
-    setVal('oPenunjang', '');
-    activeImageAttachments = [];
+
+    // Salin Hasil Penunjang Teks
+    setVal('oPenunjang', lastEntry ? (lastEntry.oPenunjang || '') : '');
+
+    // Salin Galeri Foto dengan Metadata Tanggal Unggah Asli
+    if (lastEntry && Array.isArray(lastEntry.lampiranFoto) && lastEntry.lampiranFoto.length > 0) {
+      activeImageAttachments = lastEntry.lampiranFoto.map(img => {
+        const src = (typeof img === 'string') ? img : img.data;
+        const lbl = (typeof img === 'string') ? 'Hasil Penunjang' : (img.label || 'Hasil Penunjang');
+        const tglAsal = (typeof img === 'object' && img.uploadedAtDate) ? img.uploadedAtDate : lastEntry.tglPeriksa;
+        return { data: src, label: lbl, uploadedAtDate: tglAsal, isCarried: true };
+      });
+    } else {
+      activeImageAttachments = [];
+    }
     renderImagePreviews();
 
+    // Assessment & Plan
     setVal('pDiag', lastEntry ? lastEntry.diag : '');
     setVal('pPlan', lastEntry ? lastEntry.pPlan : '');
     setVal('pInstruksi', lastEntry ? lastEntry.pInstruksi : '');
@@ -2282,9 +2304,13 @@
     if (Array.isArray(e.lampiranFoto)) {
       activeImageAttachments = e.lampiranFoto.map((f, i) => {
         if (typeof f === 'string') {
-          return { data: f, label: `Hasil Penunjang ${i + 1}` };
+          return { data: f, label: `Hasil Penunjang ${i + 1}`, uploadedAtDate: e.tglPeriksa };
         }
-        return { data: f.data, label: f.label || `Hasil Penunjang ${i + 1}` };
+        return { 
+          data: f.data, 
+          label: f.label || `Hasil Penunjang ${i + 1}`,
+          uploadedAtDate: f.uploadedAtDate || e.tglPeriksa 
+        };
       });
     } else {
       activeImageAttachments = [];
@@ -2351,7 +2377,11 @@
       oOtonom: getVal('oOtonom'),
       oLainLain: getVal('oLainLain'),
       oPenunjang: getVal('oPenunjang'),
-      lampiranFoto: activeImageAttachments.map(img => ({ data: img.data, label: img.label || 'Hasil Penunjang' })),
+      lampiranFoto: activeImageAttachments.map(img => ({ 
+        data: img.data, 
+        label: img.label || 'Hasil Penunjang',
+        uploadedAtDate: img.uploadedAtDate || tglCPPT
+      })),
 
       diag: getVal('pDiag'),
       pPlan: getVal('pPlan'),
@@ -2883,6 +2913,7 @@
     if (out) out.innerText = text.trim();
   }
 
+  // --- PEMBUATAN DOKUMEN CETAK PDF DENGAN LOGIKA FILTER FOTO SELEKTIF ---
   function buatHTMLResumePasien(p, namaKoas, nimKoas, tglLaporan) {
     const entries = p.cpptEntries || [];
     const namaRS = p.rs || getNamaRS();
@@ -2898,23 +2929,41 @@
 
         let fotoPenunjangHTML = '';
         if (Array.isArray(e.lampiranFoto) && e.lampiranFoto.length > 0) {
-          fotoPenunjangHTML = `
-            <div style="margin-top:8px;">
-              <b>Lampiran Foto Hasil Penunjang:</b>
-              <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:4px;">
-                ${e.lampiranFoto.map((imgObj, i) => {
-                  const srcData = (typeof imgObj === 'string') ? imgObj : imgObj.data;
-                  const labelTxt = (typeof imgObj === 'string') ? `Lampiran ${i + 1}` : (imgObj.label || `Lampiran ${i + 1}`);
-                  return `
-                    <div style="border:1px solid #cbd5e1; padding:4px; border-radius:4px; background:#fff; width:180px; text-align:center;">
-                      <img src="${srcData}" style="max-width:100%; height:130px; object-fit:contain; display:block; margin:auto;">
-                      <div style="font-size:8pt; font-weight:600; color:#0f2b48; margin-top:4px; word-break:break-word;">${labelTxt}</div>
-                    </div>
-                  `;
-                }).join('')}
+          // Hanya tampilkan foto yang tanggal unggahnya sama dengan tanggal CPPT lembar ini
+          const fotoAsliHariIni = e.lampiranFoto.filter(img => {
+            const uploadDate = (typeof img === 'object' && img.uploadedAtDate) ? img.uploadedAtDate : e.tglPeriksa;
+            return uploadDate === e.tglPeriksa;
+          });
+
+          if (fotoAsliHariIni.length > 0) {
+            fotoPenunjangHTML = `
+              <div style="margin-top:8px;">
+                <b>📷 Lampiran Foto Hasil Penunjang (Baru Tanggal ${formatTanggalID(e.tglPeriksa)}):</b>
+                <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:4px;">
+                  ${fotoAsliHariIni.map((imgObj, i) => {
+                    const srcData = (typeof imgObj === 'string') ? imgObj : imgObj.data;
+                    const labelTxt = (typeof imgObj === 'string') ? `Lampiran ${i + 1}` : (imgObj.label || `Lampiran ${i + 1}`);
+                    return `
+                      <div style="border:1px solid #cbd5e1; padding:4px; border-radius:4px; background:#fff; width:180px; text-align:center;">
+                        <img src="${srcData}" style="max-width:100%; height:130px; object-fit:contain; display:block; margin:auto;">
+                        <div style="font-size:8pt; font-weight:600; color:#0f2b48; margin-top:4px; word-break:break-word;">${labelTxt}</div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
               </div>
-            </div>
-          `;
+            `;
+          } else {
+            // Jika salinan dari tanggal sebelumnya, tampilkan catatan referensi ringkas
+            const tglRef = (typeof e.lampiranFoto[0] === 'object' && e.lampiranFoto[0].uploadedAtDate) 
+              ? formatTanggalID(e.lampiranFoto[0].uploadedAtDate) 
+              : 'sebelumnya';
+            fotoPenunjangHTML = `
+              <div style="margin-top:6px; font-size:8.5pt; color:#475569; font-style:italic;">
+                📎 Lampiran foto hasil penunjang tetap merujuk pada pemeriksaan tanggal ${tglRef}.
+              </div>
+            `;
+          }
         }
 
         return `
@@ -3042,7 +3091,7 @@
   function backupDatabase() {
     const backupObj = {
       system: 'MEDLOG_EMR_SUITE',
-      version: '5.4_SortedICD',
+      version: '5.5_FullIntegrated',
       timestamp: new Date().toISOString(),
       patients: pasienList,
       memory: wordMemory,
@@ -3242,6 +3291,7 @@
     }
   }
 
+  // --- DATABASE PETUNJUK PEMERIKSAAN LENGKAP (LANGKAH, PENULISAN & INTERPRETASI) ---
   const PANDUAN_NEURO = {
     td: {
       judul: "Tekanan Darah (TD) & Mean Arterial Pressure (MAP)",
