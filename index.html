@@ -301,6 +301,50 @@
     .badge-baru { background: #dbeafe; color: #1e40af; }
     .badge-lama { background: #fef3c7; color: #92400e; }
     .badge-pulang { background: #e2e8f0; color: #475569; text-decoration: line-through; }
+    
+    .badge-plan {
+      background: #ffedd5;
+      color: #c2410c;
+      border: 1px solid #fed7aa;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 700;
+      margin-top: 3px;
+    }
+    .plan-alert-banner {
+      display: none;
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      border-left: 5px solid #ea580c;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      font-size: 12.5px;
+      line-height: 1.5;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .plan-alert-banner b { color: #9a3412; }
+    .plan-chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .plan-item-chip {
+      background: #ffffff;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    .plan-item-chip:hover {
+      background: #ffedd5;
+      border-color: #ea580c;
+    }
+
     .row-pulang { background-color: #f8fafc; opacity: 0.78; }
     .filter-box {
       background: #e0f2fe;
@@ -1210,14 +1254,27 @@
         <button class="allpdf-btn" onclick="cetakSemuaResumePDF()">📑 Cetak Semua Resume (PDF)</button>
       </div>
     </div>
+
+    <!-- BANNER PERINGATAN / NOTIFIKASI PASIEN PERLU CEK PLAN -->
+    <div id="planAlertBanner" class="plan-alert-banner">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+        <div>
+          <span style="font-size:16px;">🔔</span> 
+          <b>Pemberitahuan Planning Medis:</b> Terdapat <span id="countPlanActive" style="font-weight:800; text-decoration:underline;">0</span> pasien aktif yang memiliki Plan (P/) untuk ditindaklanjuti/dicek hari ini:
+        </div>
+        <button type="button" style="background:#ea580c; padding:3px 8px; font-size:11px;" onclick="filterKePasienPlan()">🔍 Tampilkan Pasien Terkait</button>
+      </div>
+      <div id="planChipContainer" class="plan-chip-group"></div>
+    </div>
     
     <div class="filter-box">
         <select id="filterTabelRS" class="history-select" style="max-width:180px;" onchange="renderTable()">
           <option value="SEMUA" selected>Semua Rumah Sakit</option>
         </select>
-        <select id="filterTabelStatus" class="history-select" style="max-width:150px;" onchange="renderTable()">
+        <select id="filterTabelStatus" class="history-select" style="max-width:170px;" onchange="renderTable()">
           <option value="SEMUA" selected>Semua Status</option>
           <option value="AKTIF">Hanya Aktif</option>
+          <option value="NEED_PLAN">⚠️ Butuh Cek Plan</option>
           <option value="PULANG">Hanya Pulang</option>
         </select>
         <select id="filterTabelRuang" class="history-select" style="max-width:160px;" onchange="renderTable()">
@@ -1300,12 +1357,18 @@
 </div>
 
 <script>
-  // --- HELPER VALUE & RICH TEXT EDITOR ---
+  // --- HELPER VALUE & RICH TEXT EDITOR (PERBAIKAN BUG GET/SET KOSONG) ---
   function getVal(id) {
     const el = document.getElementById(id);
     if (!el) return '';
     if (el.isContentEditable) {
-      return el.innerHTML.trim();
+      const raw = el.innerHTML.trim();
+      const textOnly = el.innerText.trim();
+      // Cegah tag kosong <br> / <div> tersimpan sebagai data
+      if (textOnly === '' && (raw === '<br>' || raw === '<div><br></div>')) {
+        return '';
+      }
+      return textOnly === '' ? '' : raw;
     }
     return el.value ? el.value.trim() : '';
   }
@@ -1575,10 +1638,11 @@
 
     const val = inputEl.value.trim();
     if (targetEl.isContentEditable) {
-      if (targetEl.innerHTML.trim() === '' || targetEl.innerText.trim() === '') {
+      const cur = targetEl.innerHTML.trim();
+      if (cur === '' || cur === '<br>' || targetEl.innerText.trim() === '') {
         targetEl.innerHTML = val;
       } else {
-        targetEl.innerHTML = targetEl.innerHTML.trim() + '<br>' + val;
+        targetEl.innerHTML = cur + '<br>' + val;
       }
     } else {
       if (targetEl.value.trim() === '') {
@@ -1771,16 +1835,18 @@
     });
   }
 
+  // --- PERBAIKAN BUG INSERT HISTORY UNTUK RICH EDITOR ---
   function insertHistory(targetId, val) {
     if (!val) return;
     const el = document.getElementById(targetId);
     if (!el) return;
 
     if (el.isContentEditable) {
-      if (el.innerHTML.trim() === '' || el.innerText.trim() === '') {
+      const cur = el.innerHTML.trim();
+      if (cur === '' || cur === '<br>' || el.innerText.trim() === '') {
         el.innerHTML = val;
       } else {
-        el.innerHTML = el.innerHTML.trim() + '<br>' + val;
+        el.innerHTML = cur + '<br>' + val;
       }
     } else {
       if (el.value.trim() === '') {
@@ -2264,6 +2330,7 @@
     updateBedsideGuidance();
   }
 
+  // --- PERBAIKAN BUG ID PADA LOAD ENTRY FORM ---
   function loadEntryToForm(e) {
     setVal('sKeluhanMasuk', e.sKelMasuk || '');
     setVal('sKeluhanPagi', e.sKelPagi || '');
@@ -2288,7 +2355,7 @@
     setVal('oFKL', e.oFKL || '');
     setVal('oPupil', e.oPupil || '');
     setVal('oRMKaku', e.oRMKaku || '');
-    setVal('oRMBrud', e.oRMBrud || '');
+    setVal('oRMBrudzinski', e.oRMBrud || '');
     setVal('oRMKernig', e.oRMKernig || '');
     setVal('oMotPergerakan', e.oMotPerg || '');
     setVal('oMotTonus', e.oMotTonus || '');
@@ -2556,6 +2623,7 @@
     window.scrollTo({ top: 120, behavior: 'smooth' });
   }
 
+  // --- PERBAIKAN PEMBERSIHAN KONTEN PADA CLEAR FORM ---
   function clearForm() {
     currentPatientIndex = -1;
     currentActiveCPPTDate = '';
@@ -2603,7 +2671,7 @@
     setVal('oFKL', '');
     setVal('oPupil', '');
     setVal('oRMKaku', '');
-    setVal('oRMBrud', '');
+    setVal('oRMBrudzinski', '');
     setVal('oRMKernig', '');
     setVal('oMotPergerakan', '');
     setVal('oMotTonus', '');
@@ -2621,6 +2689,15 @@
     updateBedsideGuidance();
   }
 
+  // --- LOGIKA CEK PLAN & RENDER TABEL PASIEN ---
+  function getCleanPlanText(p) {
+    if (!p.cpptEntries || p.cpptEntries.length === 0) return '';
+    const latest = p.cpptEntries[0];
+    if (!latest.pPlan) return '';
+    const clean = latest.pPlan.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return clean;
+  }
+
   function renderTable() {
     const tbody = document.querySelector('#tabelPasien tbody');
     tbody.innerHTML = '';
@@ -2631,13 +2708,22 @@
     const filterDPJP = document.getElementById('filterTabelDPJP') ? document.getElementById('filterTabelDPJP').value : 'SEMUA';
 
     let count = 0;
+    let pasienButuhCekPlan = [];
+
     pasienList.forEach((p, idx) => {
       const isPulang = (p.status === 'Pulang');
       const rsPasien = p.rs || 'RSUD Sawerigading Palopo';
+      const planText = getCleanPlanText(p);
+      const hasPlan = (!isPulang && planText.length > 0 && planText !== '-');
+
+      if (hasPlan) {
+        pasienButuhCekPlan.push({ index: idx, nama: p.nama, ruang: p.ruang, bed: p.bed, plan: planText });
+      }
 
       if (filterRS !== 'SEMUA' && rsPasien !== filterRS) return;
       if (filterStatus === 'AKTIF' && isPulang) return;
       if (filterStatus === 'PULANG' && !isPulang) return;
+      if (filterStatus === 'NEED_PLAN' && !hasPlan) return;
       if (filterRuang !== 'SEMUA' && p.ruang !== filterRuang) return;
       if (filterDPJP !== 'SEMUA' && !p.dpjp.toLowerCase().includes(filterDPJP.toLowerCase())) return;
 
@@ -2648,6 +2734,13 @@
       const rawatInfo = hariRawat ? `<br><small style="color:#0284c7; font-weight:600;">Hari ke-${hariRawat}</small>` : '';
 
       let badge = isPulang ? `<span class="badge badge-pulang">Pulang</span>` : (p.status === 'Baru' ? `<span class="badge badge-baru">Baru</span>` : `<span class="badge badge-lama">Lama</span>`);
+      
+      let planBadgeHTML = '';
+      if (hasPlan) {
+        const shortPlan = planText.length > 32 ? planText.substring(0, 30) + '...' : planText;
+        planBadgeHTML = `<br><span class="badge-plan" title="Planning aktif: ${planText}">⚠️ Cek Plan: ${shortPlan}</span>`;
+      }
+
       const tr = document.createElement('tr');
       if (isPulang) tr.className = 'row-pulang';
 
@@ -2655,7 +2748,11 @@
         <td><small style="font-weight:700; color:#0369a1;">${rsPasien}</small></td>
         <td><b>${p.ruang}</b><br><small>${p.bed || '-'}</small></td>
         <td>${badge}${rawatInfo}</td>
-        <td><b>${formatNamaLengkap(p.gelar, p.nama)}</b> (${p.usia || '-'} Thn)<br><small>RM: ${p.rm}</small></td>
+        <td>
+          <b>${formatNamaLengkap(p.gelar, p.nama)}</b> (${p.usia || '-'} Thn)<br>
+          <small>RM: ${p.rm}</small>
+          ${planBadgeHTML}
+        </td>
         <td><small>${p.dpjp}</small></td>
         <td>
           <span class="cppt-chip" style="font-size:10px;">${entries.length} Catatan CPPT</span><br>
@@ -2674,6 +2771,41 @@
     });
 
     document.getElementById('totalBadge').innerText = count;
+    renderPlanAlertBanner(pasienButuhCekPlan);
+  }
+
+  function renderPlanAlertBanner(listPasienPlan) {
+    const banner = document.getElementById('planAlertBanner');
+    const chipContainer = document.getElementById('planChipContainer');
+    const countBadge = document.getElementById('countPlanActive');
+    if (!banner || !chipContainer) return;
+
+    if (listPasienPlan.length === 0) {
+      banner.style.display = 'none';
+      return;
+    }
+
+    countBadge.innerText = listPasienPlan.length;
+    chipContainer.innerHTML = '';
+
+    listPasienPlan.forEach(item => {
+      const chip = document.createElement('div');
+      chip.className = 'plan-item-chip';
+      chip.innerHTML = `<b>${item.nama}</b> (${item.ruang || '-'}) : <i>${item.plan.substring(0, 38)}${item.plan.length > 38 ? '...' : ''}</i>`;
+      chip.onclick = () => editPasien(item.index);
+      chip.title = "Klik untuk langsung membuka CPPT pasien ini";
+      chipContainer.appendChild(chip);
+    });
+
+    banner.style.display = 'block';
+  }
+
+  function filterKePasienPlan() {
+    const selStatus = document.getElementById('filterTabelStatus');
+    if (selStatus) {
+      selStatus.value = 'NEED_PLAN';
+      renderTable();
+    }
   }
 
   async function togglePulangkanPasien(idx) {
@@ -2929,7 +3061,6 @@
 
         let fotoPenunjangHTML = '';
         if (Array.isArray(e.lampiranFoto) && e.lampiranFoto.length > 0) {
-          // Hanya tampilkan foto yang tanggal unggahnya sama dengan tanggal CPPT lembar ini
           const fotoAsliHariIni = e.lampiranFoto.filter(img => {
             const uploadDate = (typeof img === 'object' && img.uploadedAtDate) ? img.uploadedAtDate : e.tglPeriksa;
             return uploadDate === e.tglPeriksa;
@@ -2954,7 +3085,6 @@
               </div>
             `;
           } else {
-            // Jika salinan dari tanggal sebelumnya, tampilkan catatan referensi ringkas
             const tglRef = (typeof e.lampiranFoto[0] === 'object' && e.lampiranFoto[0].uploadedAtDate) 
               ? formatTanggalID(e.lampiranFoto[0].uploadedAtDate) 
               : 'sebelumnya';
@@ -3055,8 +3185,13 @@
     const filterDPJP = document.getElementById('filterTabelDPJP') ? document.getElementById('filterTabelDPJP').value : 'SEMUA';
 
     const target = pasienList.filter(p => {
+      const isPulang = (p.status === 'Pulang');
+      const planText = getCleanPlanText(p);
+      const hasPlan = (!isPulang && planText.length > 0 && planText !== '-');
+
       if (p.status === 'Pulang' && filterStatus === 'AKTIF') return false;
       if (p.status !== 'Pulang' && filterStatus === 'PULANG') return false;
+      if (filterStatus === 'NEED_PLAN' && !hasPlan) return false;
       if (filterRS !== 'SEMUA' && (p.rs || 'RSUD Sawerigading Palopo') !== filterRS) return false;
       if (filterRuang !== 'SEMUA' && p.ruang !== filterRuang) return false;
       if (filterDPJP !== 'SEMUA' && !p.dpjp.toLowerCase().includes(filterDPJP.toLowerCase())) return false;
@@ -3091,7 +3226,7 @@
   function backupDatabase() {
     const backupObj = {
       system: 'MEDLOG_EMR_SUITE',
-      version: '5.5_FullIntegrated',
+      version: '5.6_PlanAlert',
       timestamp: new Date().toISOString(),
       patients: pasienList,
       memory: wordMemory,
@@ -3291,7 +3426,6 @@
     }
   }
 
-  // --- DATABASE PETUNJUK PEMERIKSAAN LENGKAP (LANGKAH, PENULISAN & INTERPRETASI) ---
   const PANDUAN_NEURO = {
     td: {
       judul: "Tekanan Darah (TD) & Mean Arterial Pressure (MAP)",
