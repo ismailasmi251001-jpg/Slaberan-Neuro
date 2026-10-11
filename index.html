@@ -1074,31 +1074,40 @@
         if (!firebase.apps.length) {
           firebase.initializeApp(firebaseConfig);
         }
-        dbRef = firebase.database().ref("medlog_pasien_koleksi");
+        
+        // Hubungkan langsung ke instance database regional Singapura secara eksplisit
+        const db = firebase.app().database(firebaseConfig.databaseURL);
+        dbRef = db.ref("medlog_pasien_koleksi");
         isFirebaseReady = true;
 
         dbRef.on('value', (snapshot) => {
           const cloudData = snapshot.val();
-          if (cloudData && Array.isArray(cloudData)) {
-            pasienList = cloudData;
-          } else if (cloudData && typeof cloudData === 'object') {
-            pasienList = Object.values(cloudData);
+          if (cloudData) {
+            if (Array.isArray(cloudData)) {
+              pasienList = cloudData;
+            } else if (typeof cloudData === 'object') {
+              pasienList = Object.values(cloudData);
+            }
+            renderTable();
+            updateFilterOptions();
+            populateAllSuggestions();
           }
-          renderTable();
-          updateFilterOptions();
-          populateAllSuggestions();
           const badge = document.getElementById('cloudStatusBadge');
           if (badge) {
             badge.innerText = "☁️ Multi-Device Live (Online)";
             badge.style.background = "rgba(16, 185, 129, 0.2)";
             badge.style.color = "#6ee7b7";
           }
+        }, (error) => {
+          console.error("Firebase Read Error:", error);
+          alert("Firebase Read Error: " + error.message);
+          fallbackToLocalIndexedDB();
         });
       } else {
         fallbackToLocalIndexedDB();
       }
     } catch (e) {
-      console.warn("Firebase belum terhubung, beralih ke IndexedDB lokal:", e);
+      console.warn("Firebase belum terhubung:", e);
       fallbackToLocalIndexedDB();
     }
   }
@@ -1145,9 +1154,16 @@
 
   function savePasienListDB(data) {
     if (isFirebaseReady && dbRef) {
-      dbRef.set(data).catch(err => {
-        console.warn("Gagal sinkronisasi data ke Firebase, data tetap aman di lokal:", err);
-      });
+      // Bersihkan nilai undefined/fungsi agar tidak memicu penolakan payload Firebase
+      const cleanData = JSON.parse(JSON.stringify(data));
+      dbRef.set(cleanData)
+        .then(() => {
+          console.log("Berhasil sinkronisasi ke Firebase!");
+        })
+        .catch(err => {
+          console.error("Gagal sinkronisasi data ke Firebase:", err);
+          alert("Gagal kirim ke Server Firebase: " + err.message);
+        });
     }
     return new Promise((resolve, reject) => {
       if (!dbInstance) return resolve();
